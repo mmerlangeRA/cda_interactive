@@ -1,118 +1,69 @@
 
-export enum VideoTypeEnum {
-  PHOTO = "PHOTO",
-  PANORAMA = "PANORAMA"
-}
 
-export enum RecordTypeEnum {
-  PHOTO = "PHOTO",
-  PANORAMA = "PANORAMA",
-  UNKNOWN = "UNKNOWN"
-}
 
-export type VideoType = VideoTypeEnum.PHOTO | VideoTypeEnum.PANORAMA;
-export type RecordType = RecordTypeEnum.UNKNOWN | RecordTypeEnum.PHOTO | RecordTypeEnum.PANORAMA;
-
-export interface Record {
+// Production models
+export interface Sheet {
   id: number;
   name: string;
-  srid: number;
-  date_time: string;
-  network_uuid: string;
-  network_slug?: string;
-  videos: Video[];
-  executions: Execution[];
+  business_id: string;
+  language: string;
   created_at: string;
   updated_at: string;
-  user_email?: string;
-  type: RecordType;
+  created_by: number | null;
+  created_by_username?: string;
+  pages?: SheetPage[];
+  pages_count?: number;
 }
 
-export interface Video {
+export interface SheetPage {
   id: number;
-  title: string;
-  url: string;
-  content_type: string;
-  size: number;
-  is_master: boolean;
-  type: VideoType;
-  date_time?: string;  // Optional date time field (matches Python model)
+  sheet: number;
+  sheet_name?: string;
+  business_id: string;
+  number: number;
+  description: string;
+  language: string;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  created_by_username?: string;
+  elements?: InteractiveElement[];
+  elements_count?: number;
 }
 
-export interface Execution {
+export interface InteractiveElement {
   id: number;
+  page: number;
+  page_number?: number;
+  sheet_name?: string;
+  business_id: string;
   type: string;
-  status: string;
-  start_date: string;
-  end_date: string | null;
-  n8n_id: number;
-  tasks: Task[];
+  description: object;
+  language: string;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  created_by_username?: string;
 }
 
-export interface Task {
-  id: number;
+export interface SheetCreateUpdate {
   name: string;
-  status: string;
-  custom_status: string;
-  start_date: string;
-  end_date: string | null;
+  business_id: string;
+  language: string;
 }
 
-export interface ExecutionStatus {
-  status: "running" | "completed" | "error" | "none";
-  error?: string;
-}
-
-export type JsonSchemaType = 'string' | 'number' | 'integer' | 'boolean';
-
-export interface JsonSchemaProperty {
-  type: JsonSchemaType;
-  minimum?: number;
-  maximum?: number;
+export interface SheetPageCreateUpdate {
+  sheet: number;
+  business_id: string;
+  number: number;
   description?: string;
-  default?: string | number | boolean;
+  language: string;
 }
 
-export interface JsonSchema {
+export interface InteractiveElementCreateUpdate {
+  page: number;
+  business_id: string;
   type: string;
-  properties: {
-    [key: string]: JsonSchemaProperty;
-  };
-  required?: string[];
-}
-
-export interface Workflow {
-  id: number;
-  name: string;
-  webhook_url: string;
-  workflow_specific_data?: JsonSchema;
-}
-
-export interface WorkflowParams {
-  [key: string]: string | number | boolean | object | undefined;
-  execution_id?: number;
-  workflow_name?: string;
-  webhook_url: string;
-}
-
-export interface Network {
-  uuid: string;
-  created_at: string;
-  updated_at: string;
-  name: string;
-  name_long: string;
-  referential: { [key: string]: unknown };
-  country: string;
-  slug: string;
-  bounding_box: { [key: string]: unknown };
-  modules: unknown[];
-  role: string;
-  length: string;
-}
-
-export interface PhotoCollection {
-  uuid: string;
-  type: "PHOTO" | "PANORAMA";
-  date: string;
-  layer: string;
+  description: object;
+  language: string;
 }

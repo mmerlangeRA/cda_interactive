@@ -1,3 +1,4 @@
+import { User } from '../types/auth';
 import api from "./api";
 
 // Helper function to get fresh CSRF token and update cookie
@@ -16,21 +17,14 @@ const getFreshCsrfToken = async () => {
 
 interface LoginResponse {
   message: string;
-  user: {
-    username: string;
-    email: string;
-  };
+  user: User;
   access?: string;
   refresh?: string;
 }
 
-
 interface AuthCheckResponse {
   isAuthenticated: boolean;
-  user?: {
-    username: string;
-    email: string;
-  };
+  user?: User;
 }
 
 

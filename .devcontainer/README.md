@@ -36,6 +36,10 @@ python manage.py migrate
 python manage.py runserver 0.0.0.0:8001
 ```
 
+- **Swagger UI**: [](http://localhost:8001/swagger/)<http://localhost:8001/swagger/>
+
+- **ReDoc**: [](http://localhost:8001/redoc/)<http://localhost:8001/redoc/>
+
 superadmin
 
 ```
@@ -53,13 +57,7 @@ sudo npm run build:dev
 
 ## Database
 
-The PostgreSQL database is available at:
-
-- Host: `db`
-- Port: `5432`
-- Username: `postgres`
-- Password: `postgres`
-- Database: `postgres`
+The PostgreSQL database is available with .env.dev
 
 You can connect to it using tools like pgAdmin or the command line:
 

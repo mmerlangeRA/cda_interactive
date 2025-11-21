@@ -1,12 +1,11 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import {
-  Execution,
-  ExecutionStatus,
-  Network,
-  PhotoCollection,
-  Record,
-  Workflow,
-  WorkflowParams
+  InteractiveElement,
+  InteractiveElementCreateUpdate,
+  Sheet,
+  SheetCreateUpdate,
+  SheetPage,
+  SheetPageCreateUpdate,
 } from "../types";
 
 const api = axios.create({
@@ -134,92 +133,97 @@ api.interceptors.response.use(
 );
 
 
-
-export const RecordsAPI = {
-  listActiveWorkflows: () =>
-    api.get<Workflow[]>(`/records/list_active_workflows/`),
-  getByNetwork: (networkUuid: string) =>
-    api.get<Record[]>(`/records/?network_uuid=${networkUuid}`),
-  create: async (data: { name: string; srid: number, date_time: string; network_uuid: string; network_slug?: string }) => {
+export const SheetsAPI = {
+  list: (params?: { business_id?: string; language?: string; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.business_id) queryParams.append('business_id', params.business_id);
+    if (params?.language) queryParams.append('language', params.language);
+    if (params?.search) queryParams.append('search', params.search);
+    const query = queryParams.toString();
+    return api.get<{ results: Sheet[]; count: number }>(`/sheets/${query ? `?${query}` : ''}`);
+  },
+  get: (id: number) => api.get<Sheet>(`/sheets/${id}/`),
+  create: async (data: SheetCreateUpdate) => {
     await getFreshCsrfToken();
-    return api.post<Record>("/records/", data);
+    return api.post<Sheet>('/sheets/', data);
   },
-  getRecord: (recordId: number) =>
-    api.get<Record>(`/records/${recordId}/`),
-  getExecutions: (recordId: number) =>
-    api.get<Execution[]>(`/records/${recordId}/executions/`),
-  getExecutionStatus: (executionId: number | undefined) => {
-    if (!executionId) {
-      return Promise.reject(new Error("No execution ID provided"));
-    }
-    return api.get<ExecutionStatus>(`/executions/${executionId}/status/`);
-  },
-  getExecutionDetails: (executionId: number) =>
-    api.get<Execution>(`/executions/${executionId}/`),
-  requestUpload: async (
-    recordId: number,
-    data: { title: string; content_type: string }
-  ) => {
+  update: async (id: number, data: SheetCreateUpdate) => {
     await getFreshCsrfToken();
-    return api.post<{ upload_url: string; blob_name: string }>(
-      `/records/${recordId}/request_upload/`,
-      data
-    );
+    return api.put<Sheet>(`/sheets/${id}/`, data);
   },
-  confirmUpload: async (
-    recordId: number,
-    data: { blob_name: string; title: string; content_type: string; date_time?: string }
-  ) => {
+  partialUpdate: async (id: number, data: Partial<SheetCreateUpdate>) => {
     await getFreshCsrfToken();
-    return api.post(`/records/${recordId}/confirm_upload/`, data);
+    return api.patch<Sheet>(`/sheets/${id}/`, data);
   },
-  startWorkflow: async (recordId: number, data: WorkflowParams) => {
+  delete: async (id: number) => {
     await getFreshCsrfToken();
-    return api.post(`/records/${recordId}/start_workflow/`, data);
+    return api.delete(`/sheets/${id}/`);
   },
-  listBlobDownloadUrls: (recordId: number, containerType: 'raw' | 'extracted' | 'processed') =>
-    api.get<{ download_urls: string[] }>(`/records/${recordId}/list_blob_download_urls/?container_type=${containerType}`),
-  listBlobDownloadUrlsWithFolders: (recordId: number, containerType: 'raw' | 'extracted' | 'processed') =>
-    api.get<{ folders: { [key: string]: string[] } }>(`/records/${recordId}/list_blob_download_urls_with_folders/?container_type=${containerType}`),
+  getByBusinessId: (businessId: string) =>
+    api.get<Sheet[]>(`/sheets/by_business_id/?business_id=${businessId}`),
 };
 
-export const VideosAPI = {
-  setMaster: async (videoId: number) => {
+export const SheetPagesAPI = {
+  list: (params?: { sheet?: number; business_id?: string; language?: string; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.sheet) queryParams.append('sheet', params.sheet.toString());
+    if (params?.business_id) queryParams.append('business_id', params.business_id);
+    if (params?.language) queryParams.append('language', params.language);
+    if (params?.search) queryParams.append('search', params.search);
+    const query = queryParams.toString();
+    return api.get<{ results: SheetPage[]; count: number }>(`/pages/${query ? `?${query}` : ''}`);
+  },
+  get: (id: number) => api.get<SheetPage>(`/pages/${id}/`),
+  create: async (data: SheetPageCreateUpdate) => {
     await getFreshCsrfToken();
-    return api.post(`/videos/${videoId}/set_master/`);
+    return api.post<SheetPage>('/pages/', data);
   },
-  refreshUrl: (videoId: number) => {
-    return api.get(`/videos/${videoId}/refresh_url/`);
+  update: async (id: number, data: SheetPageCreateUpdate) => {
+    await getFreshCsrfToken();
+    return api.put<SheetPage>(`/pages/${id}/`, data);
   },
+  partialUpdate: async (id: number, data: Partial<SheetPageCreateUpdate>) => {
+    await getFreshCsrfToken();
+    return api.patch<SheetPage>(`/pages/${id}/`, data);
+  },
+  delete: async (id: number) => {
+    await getFreshCsrfToken();
+    return api.delete(`/pages/${id}/`);
+  },
+  getByBusinessId: (businessId: string) =>
+    api.get<SheetPage[]>(`/pages/by_business_id/?business_id=${businessId}`),
 };
 
-// Export the token helper functions for use in other components
-export const TokenHelpers = {
-  getBearerToken,
-  getRefreshToken,
-  refreshAccessToken
-};
-
-export const NetworksAPI = {
-  getNetworks: async () => {
-    // The Authorization header with the Bearer token will be added automatically by the request interceptor
-    return api.get<Network[]>('/network/networks/');
+export const InteractiveElementsAPI = {
+  list: (params?: { page?: number; business_id?: string; language?: string; type?: string; search?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.business_id) queryParams.append('business_id', params.business_id);
+    if (params?.language) queryParams.append('language', params.language);
+    if (params?.type) queryParams.append('type', params.type);
+    if (params?.search) queryParams.append('search', params.search);
+    const query = queryParams.toString();
+    return api.get<{ results: InteractiveElement[]; count: number }>(`/elements/${query ? `?${query}` : ''}`);
   },
-};
-
-export const PhotoAPI = {
-  getCollections: (networkSlug: string) => {
-    return api.get<PhotoCollection[]>(`/photo/collections/`, {
-      params: { network: networkSlug }
-    });
+  get: (id: number) => api.get<InteractiveElement>(`/elements/${id}/`),
+  create: async (data: InteractiveElementCreateUpdate) => {
+    await getFreshCsrfToken();
+    return api.post<InteractiveElement>('/elements/', data);
   },
-};
-
-export const DebugAPI = {
-  triggerBackendError: () => {
-    // This endpoint is designed to throw an error for testing Sentry
-    return api.get(`/sentry/debug/`);
+  update: async (id: number, data: InteractiveElementCreateUpdate) => {
+    await getFreshCsrfToken();
+    return api.put<InteractiveElement>(`/elements/${id}/`, data);
   },
+  partialUpdate: async (id: number, data: Partial<InteractiveElementCreateUpdate>) => {
+    await getFreshCsrfToken();
+    return api.patch<InteractiveElement>(`/elements/${id}/`, data);
+  },
+  delete: async (id: number) => {
+    await getFreshCsrfToken();
+    return api.delete(`/elements/${id}/`);
+  },
+  getByBusinessId: (businessId: string) =>
+    api.get<InteractiveElement[]>(`/elements/by_business_id/?business_id=${businessId}`),
 };
 
 export default api;

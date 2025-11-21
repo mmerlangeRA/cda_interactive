@@ -13,8 +13,9 @@ const LoginPage: React.FC = () => {
     setError("");
 
     try {
-      await login(username, password);
-      navigate("/"); // Redirect to home page after successful login
+      const response = await login(username, password);
+      console.log('Login successful:', response.user);
+      navigate("/dashboard"); // Redirect to dashboard after successful login
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error("Login error:", error.message);

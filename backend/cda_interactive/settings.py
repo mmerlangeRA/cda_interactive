@@ -28,7 +28,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'drf_yasg',
+    'django_filters',
     'users',
+    'production',
 ]
 
 MIDDLEWARE = [

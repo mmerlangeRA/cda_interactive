@@ -1,0 +1,77 @@
+import React, { useRef } from 'react';
+import { Button, ButtonGroup } from 'react-bootstrap';
+import { Image, Trash, TypeBold } from 'react-bootstrap-icons';
+import { useCanvas } from '../../contexts/CanvasContext';
+
+export const Toolbar: React.FC = () => {
+  const { addTextElement, addImageElement, selectedId, deleteSelected } = useCanvas();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAddImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (result) {
+          addImageElement(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  return (
+    <div
+      className="d-flex align-items-center justify-content-between p-3 bg-light border-bottom"
+      style={{ minHeight: '70px' }}
+    >
+      <div className="d-flex align-items-center gap-2">
+        <h5 className="mb-0 me-3">Canvas Editor</h5>
+        <ButtonGroup>
+          <Button
+            variant="primary"
+            onClick={addTextElement}
+            className="d-flex align-items-center gap-2"
+          >
+            <TypeBold size={18} />
+            Add Text
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleAddImage}
+            className="d-flex align-items-center gap-2"
+          >
+            <Image size={18} />
+            Add Image
+          </Button>
+        </ButtonGroup>
+      </div>
+
+      {selectedId && (
+        <Button
+          variant="danger"
+          onClick={deleteSelected}
+          className="d-flex align-items-center gap-2"
+        >
+          <Trash size={18} />
+          Delete Selected
+        </Button>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+      />
+    </div>
+  );
+};

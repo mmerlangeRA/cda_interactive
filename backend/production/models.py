@@ -1,0 +1,199 @@
+from django.db import models
+from django.conf import settings
+from datetime import date
+
+
+class Ligne(models.Model):
+    internal_id = models.CharField(max_length=10, help_text="internal id of the ligne")
+    name = models.CharField(max_length=100, help_text="Name of the ligne", default="none")
+
+    class Meta:
+        db_table = 'ligne'
+        verbose_name = 'Ligne'
+        verbose_name_plural = 'Lignes'
+
+    def __str__(self):
+        return f"{self.name} ({self.internal_id})"
+
+
+class Poste(models.Model):
+    internal_id = models.CharField(max_length=10, help_text="internal id of the poste")
+    ligne = models.ForeignKey(Ligne, on_delete=models.CASCADE, help_text="reference to the ligne")
+
+    class Meta:
+        db_table = 'poste'
+        verbose_name = 'Poste'
+        verbose_name_plural = 'Postes'
+
+    def __str__(self):
+        return f"Poste {self.internal_id}"
+
+
+class Boat(models.Model):
+    internal_id = models.CharField(max_length=10, help_text="internal id of the boat")
+    name = models.CharField(max_length=100, help_text="Name of the boat", default="non défini")
+
+    class Meta:
+        db_table = 'boat'
+        verbose_name = 'Boat'
+        verbose_name_plural = 'Boats'
+
+    def __str__(self):
+        return f"{self.name} ({self.internal_id})"
+
+
+class GammeCabine(models.Model):
+    internal_id = models.CharField(max_length=10, help_text="internal id of the gamme")
+    boat = models.ForeignKey(Boat, on_delete=models.CASCADE, help_text="reference to the boat")
+
+    class Meta:
+        db_table = 'gamme_cabine'
+        verbose_name = 'Gamme Cabine'
+        verbose_name_plural = 'Gammes Cabine'
+
+    def __str__(self):
+        return f"Gamme {self.internal_id}"
+
+
+class VarianteGamme(models.Model):
+    gamme = models.ForeignKey(GammeCabine, on_delete=models.CASCADE, help_text="reference to the gamme")
+    internal_id = models.CharField(max_length=10, help_text="internal id of the variante")
+
+    class Meta:
+        db_table = 'variante_gamme'
+        verbose_name = 'Variante Gamme'
+        verbose_name_plural = 'Variantes Gamme'
+
+    def __str__(self):
+        return f"Variante {self.internal_id}"
+
+
+class Cabine(models.Model):
+    internal_id = models.CharField(max_length=10, help_text="internal id of the cabine")
+    variante_gamme = models.ForeignKey(VarianteGamme, on_delete=models.CASCADE, help_text="reference to the variante")
+
+    class Meta:
+        db_table = 'cabine'
+        verbose_name = 'Cabine'
+        verbose_name_plural = 'Cabines'
+
+    def __str__(self):
+        return f"Cabine {self.internal_id}"
+
+
+class ProductionPlanningLine(models.Model):
+    cabine = models.ForeignKey(Cabine, on_delete=models.CASCADE, help_text="reference to the cabine")
+    ligne = models.ForeignKey(Ligne, on_delete=models.CASCADE, help_text="reference to the ligne")
+    ligne_sens = models.CharField(max_length=1, help_text="sens of the ligne: D, G or -", default="D")
+    entry_date = models.DateField(help_text="entry date of the ligne")
+    exit_date = models.DateField(help_text="exit date of the ligne")
+    scheduled_entry_date = models.DateField(help_text="scheduled entry date of the ligne", default=date.today)
+    scheduled_exit_date = models.DateField(help_text="scheduled exit date of the ligne", default=date.today)
+
+    class Meta:
+        db_table = 'production_planning_line'
+        verbose_name = 'Production Planning Line'
+        verbose_name_plural = 'Production Planning Lines'
+
+    def __str__(self):
+        return f"Planning {self.cabine} on {self.ligne}"
+
+
+class Sheet(models.Model):
+    name = models.CharField(max_length=200, help_text="Name of the sheet")
+    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
+    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
+    
+    # Tracking fields
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the sheet was created")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the sheet was last updated")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_sheets',
+        help_text="User who created this sheet"
+    )
+
+    class Meta:
+        db_table = 'sheet'
+        verbose_name = 'Sheet'
+        verbose_name_plural = 'Sheets'
+        unique_together = [['business_id', 'language']]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.name} ({self.business_id} - {self.language})"
+
+
+class PosteVarianteDocumentation(models.Model):
+    poste = models.ForeignKey(Poste, on_delete=models.CASCADE, help_text="reference to the poste")
+    varianteGamme = models.ForeignKey(VarianteGamme, on_delete=models.CASCADE, help_text="reference to the variante")
+    ligne_sens = models.CharField(max_length=1, help_text="sens of the ligne: D, G or -", default="D")
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, help_text="reference to the interactive sheet")
+
+    class Meta:
+        db_table = 'poste_variante_documentation'
+        verbose_name = 'Poste Variante Documentation'
+        verbose_name_plural = 'Poste Variante Documentations'
+
+    def __str__(self):
+        return f"Doc for {self.poste} - {self.varianteGamme}"
+
+
+class SheetPage(models.Model):
+    sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, related_name='pages', help_text="reference to the sheet")
+    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
+    number = models.IntegerField(help_text="Page number")
+    description = models.TextField(blank=True, help_text="Page description")
+    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
+    
+    # Tracking fields
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the page was created")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the page was last updated")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_pages',
+        help_text="User who created this page"
+    )
+
+    class Meta:
+        db_table = 'sheet_page'
+        verbose_name = 'Sheet Page'
+        verbose_name_plural = 'Sheet Pages'
+        unique_together = [['business_id', 'language']]
+        ordering = ['sheet', 'number']
+
+    def __str__(self):
+        return f"Page {self.number} of {self.sheet.name} ({self.language})"
+
+
+class InteractiveElement(models.Model):
+    page = models.ForeignKey(SheetPage, on_delete=models.CASCADE, related_name='elements', help_text="reference to the page")
+    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
+    type = models.CharField(max_length=50, help_text="Type of interactive element")
+    description = models.JSONField(help_text="JSON description of the element")
+    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
+    
+    # Tracking fields
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the element was created")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the element was last updated")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_elements',
+        help_text="User who created this element"
+    )
+
+    class Meta:
+        db_table = 'interactive_element'
+        verbose_name = 'Interactive Element'
+        verbose_name_plural = 'Interactive Elements'
+        unique_together = [['business_id', 'language']]
+        ordering = ['page', 'id']
+
+    def __str__(self):
+        return f"{self.type} - {self.business_id} ({self.language})"
