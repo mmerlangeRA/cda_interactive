@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Missions list</title>
+    {% load static %}
+    <!-- Debug info -->
+    {% if debug %}
+    <!-- Static URL: {% get_static_prefix %} -->
+    <!-- CSS Path: {% static 'frontend/assets/style.css' %} -->
+    <!-- JS Path: {% static 'frontend/assets/index.js' %} -->
+    {% endif %}
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'frontend/assets/style.css' %}"
+    />
+    <style>
+      /* Inline critical CSS to ensure basic layout */
+      #root {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script
+      type="module"
+      src="{% static 'frontend/assets/index.js' %}"
+    ></script>
+  </body>
+</html>

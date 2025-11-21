@@ -1,0 +1,39 @@
+/* Custom Bootstrap Theme Overrides */
+
+:root {
+  --bs-dark-rgb: 5, 60, 46;
+  --bs-dark: rgb(var(--bs-dark-rgb));
+}
+
+.bg-dark {
+  background-color: rgb(5, 60, 46) !important;
+}
+
+.btn-dark {
+  background-color: rgb(5, 60, 46);
+  border-color: rgb(5, 60, 46);
+}
+
+.btn-dark:hover {
+  background-color: rgb(4, 50, 38);
+  border-color: rgb(3, 45, 34);
+}
+
+.btn-outline-dark {
+  color: rgb(5, 60, 46);
+  border-color: rgb(5, 60, 46);
+}
+
+.btn-outline-dark:hover {
+  background-color: rgb(5, 60, 46);
+  border-color: rgb(5, 60, 46);
+}
+
+.text-dark {
+  color: rgb(5, 60, 46) !important;
+}
+
+/* Sidebar styling */
+.sidebar {
+  background-color: rgb(240, 245, 243);
+}

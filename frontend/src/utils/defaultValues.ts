@@ -1,0 +1,1 @@
+export const defaultSrid = 2154
