@@ -177,6 +177,13 @@ class InteractiveElement(models.Model):
     description = models.JSONField(help_text="JSON description of the element")
     language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
     
+    # Konva.js transform properties
+    konva_transform = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Konva.js transform data: {x, y, width, height, rotation, scaleX, scaleY, skewX, skewY, offsetX, offsetY, ...}"
+    )
+    
     # Tracking fields
     created_at = models.DateTimeField(auto_now_add=True, help_text="When the element was created")
     updated_at = models.DateTimeField(auto_now=True, help_text="When the element was last updated")
@@ -197,3 +204,41 @@ class InteractiveElement(models.Model):
 
     def __str__(self):
         return f"{self.type} - {self.business_id} ({self.language})"
+
+
+class ImageElement(InteractiveElement):
+    """
+    Specialized InteractiveElement for images with upload capability.
+    Inherits all fields from InteractiveElement and adds image-specific fields.
+    """
+    url = models.ImageField(
+        upload_to='interactive_elements/images/%Y/%m/%d/',
+        help_text="Upload an image file"
+    )
+    
+    # Optional: Store image dimensions
+    width = models.IntegerField(null=True, blank=True, help_text="Image width in pixels")
+    height = models.IntegerField(null=True, blank=True, help_text="Image height in pixels")
+    
+    class Meta:
+        db_table = 'image_element'
+        verbose_name = 'Image Element'
+        verbose_name_plural = 'Image Elements'
+    
+    def save(self, *args, **kwargs):
+        # Auto-set type field to 'image'
+        self.type = 'image'
+        
+        # Auto-detect image dimensions if not set
+        if self.url and not self.width and not self.height:
+            try:
+                from PIL import Image
+                img = Image.open(self.url)
+                self.width, self.height = img.size
+            except Exception:
+                pass
+        
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Image: {self.business_id} ({self.language})"

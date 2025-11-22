@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include, re_path
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -32,7 +34,14 @@ urlpatterns = [
     
     # Production API endpoints
     path('api/', include('production.urls.sheets')),
-    
-    # Catch-all route: serve index.html for all other routes (for React Router)
+]
+
+# Serve media files in development (must be before catch-all route)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Catch-all route: serve index.html for all other routes (for React Router)
+# This MUST be last so it doesn't intercept other routes
+urlpatterns += [
     re_path(r'^.*$', index, name='index'),
 ]

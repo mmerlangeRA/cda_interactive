@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import (
     Ligne,
     Poste,
@@ -10,7 +11,8 @@ from .models import (
     Sheet,
     PosteVarianteDocumentation,
     SheetPage,
-    InteractiveElement
+    InteractiveElement,
+    ImageElement
 )
 
 
@@ -115,6 +117,55 @@ class InteractiveElementAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'
     ordering = ['page', 'id']
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Only set created_by on creation
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(ImageElement)
+class ImageElementAdmin(admin.ModelAdmin):
+    list_display = ['business_id', 'thumbnail_preview', 'page', 'language', 'width', 'height', 'created_by', 'created_at']
+    list_filter = ['language', 'page__sheet', 'created_at', 'created_by']
+    search_fields = ['business_id', 'page__sheet__name']
+    readonly_fields = ['thumbnail_display', 'width', 'height', 'created_at', 'updated_at', 'created_by']
+    date_hierarchy = 'created_at'
+    ordering = ['page', 'id']
+    
+    fields = [
+        'page',
+        'business_id',
+        'url',
+        'thumbnail_display',
+        'width',
+        'height',
+        'description',
+        'language',
+        'created_at',
+        'updated_at',
+        'created_by'
+    ]
+    
+    def thumbnail_preview(self, obj):
+        """Small thumbnail for list view (50x50px)"""
+        if obj.url:
+            return format_html(
+                '<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />',
+                obj.url.url
+            )
+        return "No image"
+    thumbnail_preview.short_description = 'Preview'
+    
+    def thumbnail_display(self, obj):
+        """Large preview for detail view (up to 400x400px)"""
+        if obj.url:
+            return format_html(
+                '<img src="{}" style="max-width: 400px; max-height: 400px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;" />',
+                obj.url.url
+            )
+        return "No image uploaded yet"
+    thumbnail_display.short_description = 'Image Preview'
     
     def save_model(self, request, obj, form, change):
         if not change:  # Only set created_by on creation
