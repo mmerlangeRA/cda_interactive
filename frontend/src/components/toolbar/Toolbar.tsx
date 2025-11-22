@@ -2,8 +2,10 @@ import React, { useRef } from 'react';
 import { Button, ButtonGroup } from 'react-bootstrap';
 import { Image, Trash, TypeBold } from 'react-bootstrap-icons';
 import { useCanvas } from '../../contexts/CanvasContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const Toolbar: React.FC = () => {
+  const { t } = useLanguage();
   const { addTextElement, addImageElement, selectedId, deleteSelected } = useCanvas();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,7 +35,7 @@ export const Toolbar: React.FC = () => {
       style={{ minHeight: '70px' }}
     >
       <div className="d-flex align-items-center gap-2">
-        <h5 className="mb-0 me-3">Canvas Editor</h5>
+        <h5 className="mb-0 me-3">{t('canvas.editor')}</h5>
         <ButtonGroup>
           <Button
             variant="primary"
@@ -41,7 +43,7 @@ export const Toolbar: React.FC = () => {
             className="d-flex align-items-center gap-2"
           >
             <TypeBold size={18} />
-            Add Text
+            {t('canvas.toolbar.addText')}
           </Button>
           <Button
             variant="primary"
@@ -49,7 +51,7 @@ export const Toolbar: React.FC = () => {
             className="d-flex align-items-center gap-2"
           >
             <Image size={18} />
-            Add Image
+            {t('canvas.toolbar.addImage')}
           </Button>
         </ButtonGroup>
       </div>
@@ -61,7 +63,7 @@ export const Toolbar: React.FC = () => {
           className="d-flex align-items-center gap-2"
         >
           <Trash size={18} />
-          Delete Selected
+          {t('canvas.toolbar.deleteSelected')}
         </Button>
       )}
 

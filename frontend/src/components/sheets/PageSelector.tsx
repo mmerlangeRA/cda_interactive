@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Dropdown } from 'react-bootstrap';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useSheet } from '../../contexts/SheetContext';
 import { SheetPagesAPI } from '../../services/api';
 import { SheetPage } from '../../types';
 
 export const PageSelector: React.FC = () => {
+  const { t } = useLanguage();
   const { selectedSheet, selectedPage, selectPage } = useSheet();
   const [pages, setPages] = useState<SheetPage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,17 +47,17 @@ export const PageSelector: React.FC = () => {
     <Dropdown>
       <Dropdown.Toggle variant="outline-primary" id="page-selector">
         {isLoading ? (
-          'Loading pages...'
+          t('pages.loadingPages')
         ) : selectedPage ? (
-          `Page ${selectedPage.number}: ${selectedPage.description || 'No description'}`
+          `${t('pages.page')} ${selectedPage.number}: ${selectedPage.description || t('pages.noDescription')}`
         ) : (
-          'Select a page'
+          t('pages.selectPage')
         )}
       </Dropdown.Toggle>
 
       <Dropdown.Menu>
         {pages.length === 0 ? (
-          <Dropdown.ItemText>No pages available</Dropdown.ItemText>
+          <Dropdown.ItemText>{t('pages.noPages')}</Dropdown.ItemText>
         ) : (
           pages.map((page) => (
             <Dropdown.Item
@@ -63,7 +65,7 @@ export const PageSelector: React.FC = () => {
               active={selectedPage?.id === page.id}
               onClick={() => selectPage(page)}
             >
-              Page {page.number}: {page.description || 'No description'}
+              {t('pages.page')} {page.number}: {page.description || t('pages.noDescription')}
             </Dropdown.Item>
           ))
         )}

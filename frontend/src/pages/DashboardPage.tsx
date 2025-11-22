@@ -1,5 +1,6 @@
 import React from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
+import LanguageChooser from '../components/LanguageChooser';
 import { ModeToggle } from '../components/pageView/ModeToggle';
 import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
@@ -7,9 +8,11 @@ import { SheetSidebar } from '../components/sheets/SheetSidebar';
 import { Toolbar } from '../components/toolbar/Toolbar';
 import { useAuth } from '../contexts/AuthContext';
 import { CanvasProvider } from '../contexts/CanvasContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useSheet } from '../contexts/SheetContext';
 
 const DashboardPage: React.FC = () => {
+  const { t } = useLanguage();
   const { user, logout } = useAuth();
   const { selectedSheet, selectedPage, isEditMode } = useSheet();
 
@@ -22,14 +25,17 @@ const DashboardPage: React.FC = () => {
       {/* Header */}
       <div className="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
         <div>
-          <h4 className="mb-0">Interactive Canvas Editor</h4>
+          <h4 className="mb-0">{t('dashboard.title')}</h4>
           <small>
-            Welcome, {user?.username} ({user?.role})
+            {t('common.welcome')}, {user?.username} ({user?.role})
           </small>
         </div>
-        <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
-          Logout
-        </button>
+        <div className="d-flex gap-2 align-items-center">
+          <LanguageChooser />
+          <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
+            {t('common.logout')}
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
@@ -70,8 +76,8 @@ const DashboardPage: React.FC = () => {
                 ) : (
                   <div className="d-flex align-items-center justify-content-center h-100">
                     <div className="text-center text-muted">
-                      <h5>No page selected</h5>
-                      <p>Select a page from the dropdown above</p>
+                      <h5>{t('dashboard.noPageSelected')}</h5>
+                      <p>{t('dashboard.selectPagePrompt')}</p>
                     </div>
                   </div>
                 )}
@@ -80,8 +86,8 @@ const DashboardPage: React.FC = () => {
           ) : (
             <div className="d-flex align-items-center justify-content-center h-100">
               <div className="text-center text-muted">
-                <h3>Welcome to Interactive Canvas Editor</h3>
-                <p>Select a sheet from the sidebar to get started</p>
+                <h3>{t('dashboard.welcomeMessage')}</h3>
+                <p>{t('dashboard.selectSheet')}</p>
               </div>
             </div>
           )}

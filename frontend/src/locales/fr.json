@@ -1,0 +1,71 @@
+{
+  "common": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "welcome": "Bienvenue"
+  },
+  "auth": {
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "loginTitle": "Connexion",
+    "loginButton": "Se connecter",
+    "loginError": "Échec de la connexion. Veuillez vérifier vos identifiants."
+  },
+  "dashboard": {
+    "title": "Éditeur de Canvas Interactif",
+    "welcomeMessage": "Bienvenue dans l'Éditeur de Canvas Interactif",
+    "selectSheet": "Sélectionnez une feuille dans la barre latérale pour commencer",
+    "noPageSelected": "Aucune page sélectionnée",
+    "selectPagePrompt": "Sélectionnez une page dans le menu déroulant ci-dessus"
+  },
+  "sheets": {
+    "title": "Feuilles",
+    "noSheets": "Aucune feuille disponible",
+    "newSheet": "Nouvelle feuille",
+    "createSheet": "Créer une nouvelle feuille",
+    "loading": "Chargement des feuilles...",
+    "sheetName": "Nom de la feuille",
+    "enterSheetName": "Entrez le nom de la feuille",
+    "businessId": "ID d'entreprise",
+    "enterBusinessId": "Entrez l'ID d'entreprise",
+    "pages": "pages",
+    "fillAllFields": "Veuillez remplir tous les champs",
+    "createdSuccess": "Feuille créée avec succès",
+    "createdError": "Échec de la création de la feuille",
+    "collapse": "Réduire la barre latérale",
+    "expand": "Développer la barre latérale"
+  },
+  "pages": {
+    "selectPage": "Sélectionner une page",
+    "noPages": "Aucune page disponible",
+    "loadingPages": "Chargement des pages...",
+    "page": "Page",
+    "noDescription": "Aucune description"
+  },
+  "canvas": {
+    "editor": "Éditeur de Canvas",
+    "toolbar": {
+      "addText": "Ajouter du texte",
+      "addImage": "Ajouter une image",
+      "deleteSelected": "Supprimer la sélection"
+    }
+  },
+  "mode": {
+    "view": "Mode Visualisation",
+    "edit": "Mode Édition",
+    "switchToEdit": "Passer en mode Édition",
+    "switchToView": "Passer en mode Visualisation"
+  }
+}

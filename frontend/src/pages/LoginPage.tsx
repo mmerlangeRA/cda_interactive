@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LanguageChooser from "../components/LanguageChooser";
+import { useLanguage } from "../contexts/LanguageContext";
 import { login } from "../services/auth";
 
 const LoginPage: React.FC = () => {
+  const { t } = useLanguage();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -26,9 +29,12 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        <LanguageChooser />
+      </div>
       <div className="card" style={{ width: '400px' }}>
         <div className="card-body">
-          <h2 className="card-title text-center mb-4">Sign in</h2>
+          <h2 className="card-title text-center mb-4">{t('auth.loginTitle')}</h2>
           <form onSubmit={handleSubmit}>
             {error && (
               <div className="alert alert-danger text-center small">
@@ -37,7 +43,7 @@ const LoginPage: React.FC = () => {
             )}
             <div className="mb-3">
               <label htmlFor="username" className="form-label">
-                username
+                {t('auth.username')}
               </label>
               <input
                 id="username"
@@ -53,7 +59,7 @@ const LoginPage: React.FC = () => {
             </div>
             <div className="mb-4">
               <label htmlFor="password" className="form-label">
-                Password
+                {t('auth.password')}
               </label>
               <input
                 id="password"
@@ -72,7 +78,7 @@ const LoginPage: React.FC = () => {
               className="btn w-100 text-white"
               style={{ backgroundColor: '#053c2e' }}
             >
-              Sign in
+              {t('auth.loginButton')}
             </button>
           </form>
         </div>

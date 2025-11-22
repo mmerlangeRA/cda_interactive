@@ -1,0 +1,71 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "welcome": "Welcome"
+  },
+  "auth": {
+    "username": "Username",
+    "password": "Password",
+    "loginTitle": "Login",
+    "loginButton": "Sign In",
+    "loginError": "Login failed. Please check your credentials."
+  },
+  "dashboard": {
+    "title": "Interactive Canvas Editor",
+    "welcomeMessage": "Welcome to Interactive Canvas Editor",
+    "selectSheet": "Select a sheet from the sidebar to get started",
+    "noPageSelected": "No page selected",
+    "selectPagePrompt": "Select a page from the dropdown above"
+  },
+  "sheets": {
+    "title": "Sheets",
+    "noSheets": "No sheets available",
+    "newSheet": "New Sheet",
+    "createSheet": "Create New Sheet",
+    "loading": "Loading sheets...",
+    "sheetName": "Sheet Name",
+    "enterSheetName": "Enter sheet name",
+    "businessId": "Business ID",
+    "enterBusinessId": "Enter business ID",
+    "pages": "pages",
+    "fillAllFields": "Please fill in all fields",
+    "createdSuccess": "Sheet created successfully",
+    "createdError": "Failed to create sheet",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "pages": {
+    "selectPage": "Select a page",
+    "noPages": "No pages available",
+    "loadingPages": "Loading pages...",
+    "page": "Page",
+    "noDescription": "No description"
+  },
+  "canvas": {
+    "editor": "Canvas Editor",
+    "toolbar": {
+      "addText": "Add Text",
+      "addImage": "Add Image",
+      "deleteSelected": "Delete Selected"
+    }
+  },
+  "mode": {
+    "view": "View Mode",
+    "edit": "Edit Mode",
+    "switchToEdit": "Switch to Edit Mode",
+    "switchToView": "Switch to View Mode"
+  }
+}

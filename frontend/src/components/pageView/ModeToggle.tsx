@@ -2,9 +2,11 @@ import React from 'react';
 import { ButtonGroup, ToggleButton } from 'react-bootstrap';
 import { Eye, Pencil } from 'react-bootstrap-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useSheet } from '../../contexts/SheetContext';
 
 export const ModeToggle: React.FC = () => {
+  const { t } = useLanguage();
   const { canEditPage } = useAuth();
   const { isEditMode, setEditMode, selectedPage } = useSheet();
 
@@ -24,7 +26,7 @@ export const ModeToggle: React.FC = () => {
         onChange={() => setEditMode(false)}
       >
         <Eye size={16} className="me-1" />
-        View Mode
+        {t('mode.view')}
       </ToggleButton>
       <ToggleButton
         id="edit-mode"
@@ -36,7 +38,7 @@ export const ModeToggle: React.FC = () => {
         onChange={() => setEditMode(true)}
       >
         <Pencil size={16} className="me-1" />
-        Edit Mode
+        {t('mode.edit')}
       </ToggleButton>
     </ButtonGroup>
   );

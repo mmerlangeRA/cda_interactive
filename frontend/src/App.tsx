@@ -4,6 +4,7 @@ import ErrorAlert from './components/ErrorAlert';
 import SuccessAlert from './components/SuccessAlert';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorProvider } from './contexts/ErrorContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { SheetProvider } from './contexts/SheetContext';
 import { SuccessProvider } from './contexts/SuccessContext';
 import DashboardPage from './pages/DashboardPage';
@@ -13,28 +14,30 @@ import ProtectedRoute from './pages/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
-      <ErrorProvider>
-        <SuccessProvider>
-          <ErrorAlert />
-          <SuccessAlert />
-          <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <SheetProvider>
-                      <DashboardPage />
-                    </SheetProvider>
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </AuthProvider>
-        </SuccessProvider>
-      </ErrorProvider>
+      <LanguageProvider>
+        <ErrorProvider>
+          <SuccessProvider>
+            <ErrorAlert />
+            <SuccessAlert />
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <SheetProvider>
+                        <DashboardPage />
+                      </SheetProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </AuthProvider>
+          </SuccessProvider>
+        </ErrorProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }
