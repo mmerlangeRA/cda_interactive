@@ -30,3 +30,23 @@ class IsEditorOrAdmin(permissions.BasePermission):
             request.user.is_authenticated and 
             request.user.role in ['EDITOR', 'ADMIN']
         )
+
+
+class IsAdminUser(permissions.BasePermission):
+    """
+    Custom permission to only allow ADMIN users.
+    """
+    
+    def has_permission(self, request, view):
+        return (
+            request.user and 
+            request.user.is_authenticated and 
+            request.user.role == 'ADMIN'
+        )
+    
+    def has_object_permission(self, request, view, obj):
+        return (
+            request.user and 
+            request.user.is_authenticated and 
+            request.user.role == 'ADMIN'
+        )

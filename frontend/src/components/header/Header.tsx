@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'react-bootstrap-icons';
+import { ChevronDown, ChevronUp, House, Images } from 'react-bootstrap-icons';
+import { Link, useLocation } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { User } from '../../types/auth';
 import LanguageChooser from '../LanguageChooser';
@@ -12,6 +13,9 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const { t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div
@@ -24,12 +28,35 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
     >
       {!isCollapsed ? (
         <div className="p-3 d-flex justify-content-between align-items-center">
-          <div>
-            <h4 className="mb-0">{t('dashboard.title')}</h4>
-            <small>
-              {t('common.welcome')}, {user?.username} ({user?.role})
-            </small>
+          <div className="d-flex align-items-center gap-4">
+            <div>
+              <h4 className="mb-0">{t('dashboard.title')}</h4>
+              <small>
+                {t('common.welcome')}, {user?.username} ({user?.role})
+              </small>
+            </div>
+            
+            {/* Navigation Menu */}
+            <nav className="d-flex gap-2">
+              <Link 
+                to="/dashboard" 
+                className={`btn btn-sm ${isActive('/dashboard') ? 'btn-light' : 'btn-outline-light'}`}
+              >
+                <House size={16} className="me-1" />
+                Dashboard
+              </Link>
+              {user?.role === 'ADMIN' && (
+                <Link 
+                  to="/library" 
+                  className={`btn btn-sm ${isActive('/library') ? 'btn-light' : 'btn-outline-light'}`}
+                >
+                  <Images size={16} className="me-1" />
+                  Library
+                </Link>
+              )}
+            </nav>
           </div>
+          
           <div className="d-flex gap-2 align-items-center">
             <LanguageChooser />
             <button className="btn btn-outline-light btn-sm" onClick={onLogout}>

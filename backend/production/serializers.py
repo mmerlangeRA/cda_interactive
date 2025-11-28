@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Sheet, SheetPage, InteractiveElement
+from .models import Sheet, SheetPage, InteractiveElement, ImageTag, ImageLibrary
 
 
 class InteractiveElementSerializer(serializers.ModelSerializer):
@@ -161,3 +161,100 @@ class InteractiveElementListSerializer(serializers.ModelSerializer):
             'created_by_username'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username']
+
+
+class ImageTagSerializer(serializers.ModelSerializer):
+    """Serializer for image tags"""
+    images_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ImageTag
+        fields = ['id', 'name', 'created_at', 'images_count']
+        read_only_fields = ['id', 'created_at']
+    
+    def get_images_count(self, obj):
+        return obj.images.count()
+
+
+class ImageLibrarySerializer(serializers.ModelSerializer):
+    """Serializer for image library with full details"""
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    tags = ImageTagSerializer(many=True, read_only=True)
+    tag_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ImageTag.objects.all(),
+        write_only=True,
+        required=False,
+        source='tags'
+    )
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ImageLibrary
+        fields = [
+            'id',
+            'name',
+            'description',
+            'image',
+            'image_url',
+            'tags',
+            'tag_ids',
+            'language',
+            'width',
+            'height',
+            'created_at',
+            'updated_at',
+            'created_by',
+            'created_by_username'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username', 'width', 'height']
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def create(self, validated_data):
+        # Automatically set created_by from request user
+        validated_data['created_by'] = self.context['request'].user
+        return super().create(validated_data)
+
+
+class ImageLibraryListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for list views"""
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    tags = ImageTagSerializer(many=True, read_only=True)
+    image_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ImageLibrary
+        fields = [
+            'id',
+            'name',
+            'description',
+            'image_url',
+            'thumbnail_url',
+            'tags',
+            'language',
+            'width',
+            'height',
+            'created_at',
+            'created_by_username'
+        ]
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        # For now, return the same as image_url
+        # In future, could implement thumbnail generation
+        return self.get_image_url(obj)

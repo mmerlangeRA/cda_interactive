@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { Header } from "../components/header/Header";
+import { useAuth } from "../contexts/AuthContext";
 import { checkAuth } from "../services/auth";
 
 interface ProtectedRouteProps {
@@ -9,6 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -26,6 +29,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     verifyAuth();
   }, []);
 
+  const handleLogout = async () => {
+    await logout();
+  };
+
   if (isAuthenticated === null) {
     // Show loading state while checking authentication
     return (
@@ -40,7 +47,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <Header user={user} onLogout={handleLogout} />
+      {children}
+    </>
+  );
 };
 
 export default ProtectedRoute;

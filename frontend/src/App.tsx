@@ -5,9 +5,12 @@ import SuccessAlert from './components/SuccessAlert';
 import { AuthProvider } from './contexts/AuthContext';
 import { ErrorProvider } from './contexts/ErrorContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { LibraryProvider } from './contexts/LibraryContext';
 import { SheetProvider } from './contexts/SheetContext';
 import { SuccessProvider } from './contexts/SuccessContext';
 import DashboardPage from './pages/DashboardPage';
+import DebugLibraryPage from './pages/DebugLibraryPage';
+import ImageLibraryPage from './pages/ImageLibraryPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './pages/ProtectedRoute';
 
@@ -29,6 +32,24 @@ function App() {
                       <SheetProvider>
                         <DashboardPage />
                       </SheetProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/library"
+                  element={
+                    <ProtectedRoute>
+                      <LibraryProvider>
+                        <ImageLibraryPage />
+                      </LibraryProvider>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/debug/library"
+                  element={
+                    <ProtectedRoute>
+                      <DebugLibraryPage />
                     </ProtectedRoute>
                   }
                 />

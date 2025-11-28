@@ -1,31 +1,21 @@
 import React from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
-import { Header } from '../components/header/Header';
 import { ModeToggle } from '../components/pageView/ModeToggle';
 import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
 import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
 import { SheetSidebar } from '../components/sheets/SheetSidebar';
 import { Toolbar } from '../components/toolbar/Toolbar';
-import { useAuth } from '../contexts/AuthContext';
 import { CanvasProvider } from '../contexts/CanvasContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useSheet } from '../contexts/SheetContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
-  const { user, logout } = useAuth();
   const { selectedSheet, selectedPage, isEditMode } = useSheet();
-
-  const handleLogout = async () => {
-    await logout();
-  };
 
   return (
     <div className="d-flex flex-column vh-100">
-      {/* Header */}
-      <Header user={user} onLogout={handleLogout} />
-
       {/* Main Content */}
       <div className="d-flex flex-grow-1 overflow-hidden">
         {/* Sidebar */}

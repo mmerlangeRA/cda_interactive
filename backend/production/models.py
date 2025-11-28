@@ -221,6 +221,77 @@ class InteractiveElement(models.Model):
         return f"{self.type} - {self.business_id} ({self.language})"
 
 
+class ImageTag(models.Model):
+    """Tags for organizing images in the library"""
+    name = models.CharField(max_length=50, unique=True, help_text="Tag name")
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the tag was created")
+    
+    class Meta:
+        db_table = 'image_tag'
+        verbose_name = 'Image Tag'
+        verbose_name_plural = 'Image Tags'
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
+class ImageLibrary(models.Model):
+    """Centralized image storage with tagging and language support"""
+    LANGUAGE_CHOICES = [
+        ('en', 'English'),
+        ('fr', 'French'),
+    ]
+    
+    name = models.CharField(max_length=255, help_text="Image name")
+    description = models.TextField(blank=True, help_text="Image description")
+    image = models.ImageField(upload_to='library_images/%Y/%m/%d/', help_text="Upload an image file")
+    tags = models.ManyToManyField(ImageTag, blank=True, related_name='images', help_text="Tags for organizing images")
+    language = models.CharField(
+        max_length=2,
+        choices=LANGUAGE_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Language for this image (optional)"
+    )
+    
+    # Image dimensions
+    width = models.IntegerField(null=True, blank=True, help_text="Image width in pixels")
+    height = models.IntegerField(null=True, blank=True, help_text="Image height in pixels")
+    
+    # Tracking fields
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the image was uploaded")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the image was last updated")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='uploaded_images',
+        help_text="User who uploaded this image"
+    )
+    
+    class Meta:
+        db_table = 'image_library'
+        verbose_name = 'Image Library'
+        verbose_name_plural = 'Image Library'
+        ordering = ['-created_at']
+    
+    def save(self, *args, **kwargs):
+        # Auto-detect image dimensions if not set
+        if self.image and not self.width and not self.height:
+            try:
+                from PIL import Image
+                img = Image.open(self.image)
+                self.width, self.height = img.size
+            except Exception:
+                pass
+        
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.name} ({self.language or 'no language'})"
+
+
 class ImageElement(InteractiveElement):
     """
     Specialized InteractiveElement for images with upload capability.
