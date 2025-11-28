@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, House, Images } from 'react-bootstrap-icons';
+import { ChevronDown, ChevronUp } from 'react-bootstrap-icons';
 import { Link, useLocation } from 'react-router-dom';
+import { getNavigationRoutes } from '../../config/routes';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { User } from '../../types/auth';
 import LanguageChooser from '../LanguageChooser';
@@ -14,6 +15,9 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const { t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  
+  // Get navigation routes based on user role
+  const navigationRoutes = getNavigationRoutes(user?.role || null);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -36,24 +40,21 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
               </small>
             </div>
             
-            {/* Navigation Menu */}
+            {/* Dynamic Navigation Menu */}
             <nav className="d-flex gap-2">
-              <Link 
-                to="/dashboard" 
-                className={`btn btn-sm ${isActive('/dashboard') ? 'btn-light' : 'btn-outline-light'}`}
-              >
-                <House size={16} className="me-1" />
-                Dashboard
-              </Link>
-              {user?.role === 'ADMIN' && (
-                <Link 
-                  to="/library" 
-                  className={`btn btn-sm ${isActive('/library') ? 'btn-light' : 'btn-outline-light'}`}
-                >
-                  <Images size={16} className="me-1" />
-                  Library
-                </Link>
-              )}
+              {navigationRoutes.map(route => {
+                const IconComponent = route.icon;
+                return (
+                  <Link 
+                    key={route.path}
+                    to={route.path} 
+                    className={`btn btn-sm ${isActive(route.path) ? 'btn-light' : 'btn-outline-light'}`}
+                  >
+                    {IconComponent && <IconComponent size={16} className="me-1" />}
+                    {route.name}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
           
