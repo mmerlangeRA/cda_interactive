@@ -35,6 +35,7 @@ urlpatterns = [
     # Production API endpoints
     path('api/', include('production.urls.sheets')),
     path('api/library/', include('production.urls.library')),
+    path('api/', include('production.urls.references')),
 ]
 
 # Serve media files in development (must be before catch-all route)

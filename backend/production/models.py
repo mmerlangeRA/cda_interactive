@@ -328,3 +328,125 @@ class ImageElement(InteractiveElement):
     
     def __str__(self):
         return f"Image: {self.business_id} ({self.language})"
+
+
+class ReferenceValue(models.Model):
+    """
+    Represents a reference instance (e.g., a specific screw or gabarit).
+    The structure/schema is defined in frontend config, only values are stored here.
+    """
+    type = models.CharField(max_length=50, help_text="Reference type (e.g., 'screw', 'gabarit')")
+    icon = models.CharField(max_length=50, blank=True, null=True, help_text="Optional icon name")
+    version = models.IntegerField(default=1, help_text="Version number, incremented on each update")
+    
+    # Tracking fields
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the reference was created")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the reference was last updated")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_references',
+        help_text="User who created this reference"
+    )
+    
+    class Meta:
+        db_table = 'reference_value'
+        verbose_name = 'Reference Value'
+        verbose_name_plural = 'Reference Values'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.type} (v{self.version})"
+
+
+class FieldDefinitionValue(models.Model):
+    """
+    Stores the actual value for a field in a reference.
+    Supports multilingual values (e.g., 'reference' field in EN and FR).
+    """
+    reference = models.ForeignKey(
+        ReferenceValue,
+        on_delete=models.CASCADE,
+        related_name='fields',
+        help_text="Reference to the parent ReferenceValue"
+    )
+    name = models.CharField(max_length=100, help_text="Field name (e.g., 'reference', 'image')")
+    type = models.CharField(
+        max_length=20,
+        help_text="Field type: 'string', 'int', 'float', or 'image'"
+    )
+    language = models.CharField(
+        max_length=2,
+        blank=True,
+        null=True,
+        help_text="Language code ('en', 'fr') or NULL for non-translatable fields"
+    )
+    
+    # Polymorphic value storage - only one will be used based on 'type'
+    value_string = models.TextField(blank=True, null=True, help_text="Value for string type")
+    value_int = models.IntegerField(blank=True, null=True, help_text="Value for int type")
+    value_float = models.FloatField(blank=True, null=True, help_text="Value for float type")
+    value_image = models.ForeignKey(
+        ImageLibrary,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        help_text="Value for image type (reference to ImageLibrary)"
+    )
+    
+    class Meta:
+        db_table = 'field_definition_value'
+        verbose_name = 'Field Definition Value'
+        verbose_name_plural = 'Field Definition Values'
+        unique_together = [['reference', 'name', 'language']]
+        ordering = ['reference', 'name', 'language']
+    
+    def __str__(self):
+        lang_str = f" ({self.language})" if self.language else ""
+        return f"{self.reference.type}.{self.name}{lang_str}"
+    
+    def get_value(self):
+        """Return the actual value based on the field type"""
+        if self.type == 'string':
+            return self.value_string
+        elif self.type == 'int':
+            return self.value_int
+        elif self.type == 'float':
+            return self.value_float
+        elif self.type == 'image':
+            return self.value_image
+        return None
+
+
+class ReferenceHistory(models.Model):
+    """
+    Audit trail for reference changes.
+    Stores what changed, when, and by whom.
+    """
+    reference = models.ForeignKey(
+        ReferenceValue,
+        on_delete=models.CASCADE,
+        related_name='history',
+        help_text="Reference to the ReferenceValue"
+    )
+    version = models.IntegerField(help_text="Version number at the time of this change")
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text="User who made this change"
+    )
+    changed_at = models.DateTimeField(auto_now_add=True, help_text="When the change was made")
+    changes = models.JSONField(
+        help_text="JSON object describing what changed: {field_name: {old: value, new: value}}"
+    )
+    
+    class Meta:
+        db_table = 'reference_history'
+        verbose_name = 'Reference History'
+        verbose_name_plural = 'Reference History'
+        ordering = ['-changed_at']
+    
+    def __str__(self):
+        return f"{self.reference.type} v{self.version} - {self.changed_at.strftime('%Y-%m-%d %H:%M')}"

@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ErrorProvider } from './contexts/ErrorContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { LibraryProvider } from './contexts/LibraryContext';
+import { ReferenceProvider } from './contexts/ReferenceContext';
 import { SheetProvider } from './contexts/SheetContext';
 import { SuccessProvider } from './contexts/SuccessContext';
 import LoginPage from './pages/LoginPage';
@@ -45,6 +46,13 @@ function App() {
                     element = <SheetProvider>{element}</SheetProvider>;
                   } else if (route.path === '/library' || route.path === '/debug/library') {
                     element = <LibraryProvider>{element}</LibraryProvider>;
+                  } else if (route.path === '/references') {
+                    // References need both LibraryProvider (for image selection) and ReferenceProvider
+                    element = (
+                      <LibraryProvider>
+                        <ReferenceProvider>{element}</ReferenceProvider>
+                      </LibraryProvider>
+                    );
                   }
                   
                   return (

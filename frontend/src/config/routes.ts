@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import { House, Icon, Images } from 'react-bootstrap-icons';
+import { BookmarkCheck, House, Icon, Images } from 'react-bootstrap-icons';
 import { UserRole } from '../types/auth';
 
 export interface RouteConfig {
@@ -15,6 +15,7 @@ export interface RouteConfig {
 import DashboardPage from '../pages/DashboardPage';
 import DebugLibraryPage from '../pages/DebugLibraryPage';
 import ImageLibraryPage from '../pages/ImageLibraryPage';
+import ReferencePage from '../pages/ReferencePage';
 
 export const APP_ROUTES: RouteConfig[] = [
   {
@@ -32,6 +33,14 @@ export const APP_ROUTES: RouteConfig[] = [
     allowedRoles: ['ADMIN'],
     showInNav: true,
     element: ImageLibraryPage,
+  },
+  {
+    path: '/references',
+    name: 'References',
+    icon: BookmarkCheck,
+    allowedRoles: ['ADMIN'],
+    showInNav: true,
+    element: ReferencePage,
   },
   {
     path: '/debug/library',

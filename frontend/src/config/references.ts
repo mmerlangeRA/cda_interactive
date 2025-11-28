@@ -1,0 +1,84 @@
+import { Icon, Rulers, Screwdriver } from 'react-bootstrap-icons';
+
+export type FieldType = 'string' | 'int' | 'float' | 'image';
+
+export interface FieldDefinitionModel {
+  name: string;
+  label: string;
+  type: FieldType;
+  required: boolean;
+  needs_translation: boolean;
+}
+
+export interface ReferenceModel {
+  type: string;
+  label: string;
+  icon: Icon;
+  fields: FieldDefinitionModel[];
+}
+
+/**
+ * Hardcoded reference type definitions
+ * Schema is defined here, only values are stored in backend
+ */
+export const REFERENCE_TYPES: ReferenceModel[] = [
+  {
+    type: 'screw',
+    label: 'Screw',
+    icon: Screwdriver,
+    fields: [
+      {
+        name: 'reference',
+        label: 'Reference',
+        type: 'string',
+        required: true,
+        needs_translation: false
+      },
+      {
+        name: 'image',
+        label: 'Image',
+        type: 'image',
+        required: false,
+        needs_translation: false, // Same image for all languages
+      },
+    ],
+  },
+  {
+    type: 'gabarit',
+    label: 'Gabarit',
+    icon: Rulers,
+    fields: [
+      {
+        name: 'reference',
+        label: 'Reference',
+        type: 'string',
+        required: true,
+        needs_translation: false,
+      },
+    ],
+  },
+];
+
+/**
+ * Get reference model by type
+ */
+export const getReferenceModel = (type: string): ReferenceModel | undefined => {
+  return REFERENCE_TYPES.find(ref => ref.type === type);
+};
+
+/**
+ * Get field definition by name
+ */
+export const getFieldDefinition = (
+  type: string,
+  fieldName: string
+): FieldDefinitionModel | undefined => {
+  const model = getReferenceModel(type);
+  return model?.fields.find(field => field.name === fieldName);
+};
+
+/**
+ * Get available languages
+ */
+export const AVAILABLE_LANGUAGES = ['en', 'fr'] as const;
+export type Language = (typeof AVAILABLE_LANGUAGES)[number];
