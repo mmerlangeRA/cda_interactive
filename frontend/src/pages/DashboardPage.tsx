@@ -1,7 +1,8 @@
 import React from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
-import LanguageChooser from '../components/LanguageChooser';
+import { Header } from '../components/header/Header';
 import { ModeToggle } from '../components/pageView/ModeToggle';
+import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
 import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
 import { SheetSidebar } from '../components/sheets/SheetSidebar';
@@ -13,7 +14,7 @@ import { useSheet } from '../contexts/SheetContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { selectedSheet, selectedPage, isEditMode } = useSheet();
 
   const handleLogout = async () => {
@@ -23,20 +24,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="d-flex flex-column vh-100">
       {/* Header */}
-      <div className="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
-        <div>
-          <h4 className="mb-0">{t('dashboard.title')}</h4>
-          <small>
-            {t('common.welcome')}, {user?.username} ({user?.role})
-          </small>
-        </div>
-        <div className="d-flex gap-2 align-items-center">
-          <LanguageChooser />
-          <button className="btn btn-outline-light btn-sm" onClick={handleLogout}>
-            {t('common.logout')}
-          </button>
-        </div>
-      </div>
+      <Header onLogout={handleLogout} />
 
       {/* Main Content */}
       <div className="d-flex flex-grow-1 overflow-hidden">
@@ -55,6 +43,9 @@ const DashboardPage: React.FC = () => {
                 </div>
                 <ModeToggle />
               </div>
+
+              {/* Page Description Banner */}
+              {selectedPage && <PageDescriptionBanner />}
 
               {/* Content Area */}
               <div className="flex-grow-1 overflow-auto">

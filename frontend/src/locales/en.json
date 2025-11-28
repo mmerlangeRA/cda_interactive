@@ -52,7 +52,16 @@
     "noPages": "No pages available",
     "loadingPages": "Loading pages...",
     "page": "Page",
-    "noDescription": "No description"
+    "noDescription": "No description",
+    "addNewPage": "Add New Page",
+    "deleteCurrentPage": "Delete Current Page",
+    "confirmDeleteTitle": "Confirm Delete Page",
+    "confirmDeleteMessage": "Are you sure you want to delete Page {number}? All elements on this page will be permanently lost.",
+    "deleteSuccess": "Page deleted successfully",
+    "createSuccess": "Page created successfully",
+    "deleteError": "Failed to delete page",
+    "createError": "Failed to create page",
+    "defaultDescription": "Page {number} - Description"
   },
   "canvas": {
     "editor": "Canvas Editor",

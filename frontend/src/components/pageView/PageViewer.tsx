@@ -1,8 +1,10 @@
 import React from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useSheet } from '../../contexts/SheetContext';
 
 export const PageViewer: React.FC = () => {
   const { selectedPage, pageElements, isLoading } = useSheet();
+  const { language } = useLanguage();
 
   if (!selectedPage) {
     return (
@@ -29,7 +31,7 @@ export const PageViewer: React.FC = () => {
     <div className="p-4">
       <div className="bg-white border rounded shadow-sm p-4">
         <h4>Page {selectedPage.number}</h4>
-        <p className="text-muted">{selectedPage.description || 'No description available'}</p>
+        <p className="text-muted">{selectedPage.description?.[language] || 'No description available'}</p>
         
         <hr />
         

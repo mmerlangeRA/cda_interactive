@@ -96,9 +96,9 @@ class PosteVarianteDocumentationAdmin(admin.ModelAdmin):
 
 @admin.register(SheetPage)
 class SheetPageAdmin(admin.ModelAdmin):
-    list_display = ['number', 'sheet', 'business_id', 'language', 'created_by', 'created_at']
-    list_filter = ['language', 'sheet', 'created_at', 'created_by']
-    search_fields = ['business_id', 'description', 'sheet__name']
+    list_display = ['number', 'sheet', 'created_by', 'created_at']
+    list_filter = ['sheet', 'created_at', 'created_by']
+    search_fields = ['sheet__name']
     readonly_fields = ['created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'
     ordering = ['sheet', 'number']

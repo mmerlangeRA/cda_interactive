@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { InteractiveElementsAPI, SheetsAPI } from '../services/api';
+import { InteractiveElementsAPI, SheetPagesAPI, SheetsAPI } from '../services/api';
 import { InteractiveElement, Sheet, SheetPage } from '../types';
 import { useAuth } from './AuthContext';
 
@@ -15,6 +15,9 @@ interface SheetContextType {
   selectPage: (page: SheetPage | null) => void;
   setEditMode: (mode: boolean) => void;
   createSheet: (data: { name: string; business_id: string; language: string }) => Promise<Sheet>;
+  createPage: () => Promise<SheetPage | null>;
+  deletePage: (pageId: number) => Promise<void>;
+  refreshPages: () => Promise<void>;
   loadPageElements: (pageId: number) => Promise<void>;
   savePageElements: (pageId: number, elements: InteractiveElement[]) => Promise<void>;
 }
@@ -102,6 +105,94 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
+  const createPage = useCallback(async () => {
+    if (!selectedSheet) {
+      console.error('No sheet selected');
+      return null;
+    }
+
+    try {
+      // Get all existing pages to determine the next page number
+      const response = await SheetPagesAPI.list({ sheet: selectedSheet.id });
+      const pageList = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      
+      // Calculate next page number
+      const maxPageNumber = pageList.length > 0 
+        ? Math.max(...pageList.map(p => p.number)) 
+        : 0;
+      const nextPageNumber = maxPageNumber + 1;
+
+      // Create default descriptions
+      const defaultDescription = {
+        en: `Page ${nextPageNumber} - Description`,
+        fr: `Page ${nextPageNumber} - Description`
+      };
+
+      // Create the page
+      const newPageResponse = await SheetPagesAPI.create({
+        sheet: selectedSheet.id,
+        number: nextPageNumber,
+        description: defaultDescription
+      });
+
+      // Refresh pages list
+      await refreshPages();
+      
+      // Auto-select the new page
+      selectPage(newPageResponse.data);
+      
+      return newPageResponse.data;
+    } catch (error) {
+      console.error('Failed to create page:', error);
+      throw error;
+    }
+  }, [selectedSheet]);
+
+  const deletePage = useCallback(async (pageId: number) => {
+    if (!selectedSheet) {
+      console.error('No sheet selected');
+      return;
+    }
+
+    try {
+      // Delete the page with renumbering enabled
+      await SheetPagesAPI.delete(pageId, true);
+      
+      // Refresh pages list
+      await refreshPages();
+      
+      // Clear selection if current page was deleted
+      if (selectedPage?.id === pageId) {
+        // Try to select the first available page
+        const response = await SheetPagesAPI.list({ sheet: selectedSheet.id });
+        const pageList = Array.isArray(response.data) ? response.data : (response.data.results || []);
+        if (pageList.length > 0) {
+          selectPage(pageList[0]);
+        } else {
+          selectPage(null);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete page:', error);
+      throw error;
+    }
+  }, [selectedSheet, selectedPage]);
+
+  const refreshPages = useCallback(async () => {
+    if (!selectedSheet) {
+      return;
+    }
+
+    try {
+      await SheetPagesAPI.list({ sheet: selectedSheet.id });
+      // This will trigger a re-render in components using this data
+      // The actual pages state is managed locally in PageSelector
+    } catch (error) {
+      console.error('Failed to refresh pages:', error);
+      throw error;
+    }
+  }, [selectedSheet]);
+
   const savePageElements = useCallback(async (pageId: number, elements: InteractiveElement[]) => {
     // This is a simplified save - in a real app you'd need to handle create/update/delete
     // For now, we'll just store locally
@@ -123,6 +214,9 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         selectPage,
         setEditMode,
         createSheet,
+        createPage,
+        deletePage,
+        refreshPages,
         loadPageElements,
         savePageElements,
       }}

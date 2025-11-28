@@ -186,9 +186,9 @@ export const SheetPagesAPI = {
     await getFreshCsrfToken();
     return api.patch<SheetPage>(`/pages/${id}/`, data);
   },
-  delete: async (id: number) => {
+  delete: async (id: number, renumber: boolean = true) => {
     await getFreshCsrfToken();
-    return api.delete(`/pages/${id}/`);
+    return api.delete(`/pages/${id}/?renumber=${renumber}`);
   },
   getByBusinessId: (businessId: string) =>
     api.get<SheetPage[]>(`/pages/by_business_id/?business_id=${businessId}`),

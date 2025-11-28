@@ -2,6 +2,7 @@ import React from 'react';
 import { Container } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
+import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
 import { Toolbar } from '../components/toolbar/Toolbar';
 import { useError } from '../contexts/ErrorContext';
 import { useSuccess } from '../contexts/SuccessContext';
@@ -37,6 +38,7 @@ const CanvasPage: React.FC = () => {
 
       {/* Main Canvas Area */}
       <Container fluid className="flex-grow-1 p-4 overflow-auto">
+        <PageDescriptionBanner />
         <div className="d-flex justify-content-center">
           <CanvasEditor />
         </div>

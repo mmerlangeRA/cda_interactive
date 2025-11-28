@@ -19,10 +19,8 @@ export interface SheetPage {
   id: number;
   sheet: number;
   sheet_name?: string;
-  business_id: string;
   number: number;
-  description: string;
-  language: string;
+  description: Record<string, string>; // e.g., { "en": "English desc", "fr": "Description française" }
   created_at: string;
   updated_at: string;
   created_by: number | null;
@@ -54,10 +52,8 @@ export interface SheetCreateUpdate {
 
 export interface SheetPageCreateUpdate {
   sheet: number;
-  business_id: string;
   number: number;
-  description?: string;
-  language: string;
+  description?: Record<string, string>; // e.g., { "en": "English desc", "fr": "Description française" }
 }
 
 export interface InteractiveElementCreateUpdate {

@@ -143,10 +143,12 @@ class PosteVarianteDocumentation(models.Model):
 
 class SheetPage(models.Model):
     sheet = models.ForeignKey(Sheet, on_delete=models.CASCADE, related_name='pages', help_text="reference to the sheet")
-    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
     number = models.IntegerField(help_text="Page number")
-    description = models.TextField(blank=True, help_text="Page description")
-    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
+    description = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Page description in multiple languages: {'en': 'English desc', 'fr': 'Description française'}"
+    )
     
     # Tracking fields
     created_at = models.DateTimeField(auto_now_add=True, help_text="When the page was created")
@@ -163,11 +165,24 @@ class SheetPage(models.Model):
         db_table = 'sheet_page'
         verbose_name = 'Sheet Page'
         verbose_name_plural = 'Sheet Pages'
-        unique_together = [['business_id', 'language']]
+        unique_together = [['sheet', 'number']]
         ordering = ['sheet', 'number']
 
     def __str__(self):
-        return f"Page {self.number} of {self.sheet.name} ({self.language})"
+        return f"Page {self.number} of {self.sheet.name}"
+    
+    def get_description(self, language='en'):
+        """Get description for a specific language with fallback to 'en' then 'fr'"""
+        if not self.description:
+            return ""
+        if language in self.description:
+            return self.description[language]
+        # Fallback to English, then French, then first available
+        for fallback_lang in ['en', 'fr']:
+            if fallback_lang in self.description:
+                return self.description[fallback_lang]
+        # Return first available language if no fallback found
+        return next(iter(self.description.values())) if self.description else ""
 
 
 class InteractiveElement(models.Model):

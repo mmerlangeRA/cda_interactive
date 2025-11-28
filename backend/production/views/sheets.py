@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -141,8 +141,8 @@ class SheetPageViewSet(viewsets.ModelViewSet):
     queryset = SheetPage.objects.all()
     permission_classes = [IsEditorOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['sheet', 'business_id', 'language', 'number', 'created_by']
-    search_fields = ['description', 'business_id']
+    filterset_fields = ['sheet', 'number', 'created_by']
+    search_fields = []  # Description is now JSON, can't be searched easily
     ordering_fields = ['created_at', 'updated_at', 'number']
     ordering = ['sheet', 'number']
     
@@ -214,7 +214,16 @@ class SheetPageViewSet(viewsets.ModelViewSet):
         return super().partial_update(request, *args, **kwargs)
     
     @swagger_auto_schema(
-        operation_description="Delete a sheet page (EDITOR/ADMIN only)",
+        operation_description="Delete a sheet page (EDITOR/ADMIN only). If renumber=true, subsequent pages will be renumbered.",
+        manual_parameters=[
+            openapi.Parameter(
+                'renumber',
+                openapi.IN_QUERY,
+                description="Whether to renumber subsequent pages after deletion (default: true)",
+                type=openapi.TYPE_BOOLEAN,
+                default=True
+            )
+        ],
         responses={
             204: "Sheet page deleted successfully",
             403: "Permission denied - requires EDITOR or ADMIN role",
@@ -223,26 +232,29 @@ class SheetPageViewSet(viewsets.ModelViewSet):
         tags=['Sheet Pages']
     )
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-    
-    @swagger_auto_schema(
-        method='get',
-        operation_description="Get all translations of a page by business_id",
-        responses={
-            200: SheetPageListSerializer(many=True)
-        },
-        tags=['Sheet Pages']
-    )
-    @action(detail=False, methods=['get'])
-    def by_business_id(self, request):
-        """Get all translations of a page by business_id"""
-        business_id = request.query_params.get('business_id')
-        if not business_id:
-            return Response({'error': 'business_id parameter is required'}, status=400)
+        instance = self.get_object()
+        renumber = request.query_params.get('renumber', 'true').lower() == 'true'
         
-        pages = self.queryset.filter(business_id=business_id)
-        serializer = SheetPageListSerializer(pages, many=True)
-        return Response(serializer.data)
+        if renumber:
+            deleted_number = instance.number
+            sheet_id = instance.sheet_id
+            
+            # Delete the page
+            self.perform_destroy(instance)
+            
+            # Renumber subsequent pages
+            pages_to_update = SheetPage.objects.filter(
+                sheet_id=sheet_id,
+                number__gt=deleted_number
+            )
+            for page in pages_to_update:
+                page.number -= 1
+                page.save()
+        else:
+            self.perform_destroy(instance)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
 
 class InteractiveElementViewSet(viewsets.ModelViewSet):
