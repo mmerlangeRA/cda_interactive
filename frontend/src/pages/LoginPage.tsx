@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LanguageChooser from "../components/LanguageChooser";
+import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { login } from "../services/auth";
 
 const LoginPage: React.FC = () => {
   const { t } = useLanguage();
+  const { setUser } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -18,6 +20,10 @@ const LoginPage: React.FC = () => {
     try {
       const response = await login(username, password);
       console.log('Login successful:', response.user);
+      
+      // Update user state immediately so it's available without page refresh
+      setUser(response.user);
+      
       navigate("/dashboard"); // Redirect to dashboard after successful login
     } catch (error: unknown) {
       if (error instanceof Error) {

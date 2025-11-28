@@ -14,7 +14,7 @@ import { useSheet } from '../contexts/SheetContext';
 
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { selectedSheet, selectedPage, isEditMode } = useSheet();
 
   const handleLogout = async () => {
@@ -24,7 +24,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="d-flex flex-column vh-100">
       {/* Header */}
-      <Header onLogout={handleLogout} />
+      <Header user={user} onLogout={handleLogout} />
 
       {/* Main Content */}
       <div className="d-flex flex-grow-1 overflow-hidden">

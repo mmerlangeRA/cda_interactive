@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'react-bootstrap-icons';
-import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { User } from '../../types/auth';
 import LanguageChooser from '../LanguageChooser';
 
 interface HeaderProps {
+  user: User | null;
   onLogout: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onLogout }) => {
+export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (

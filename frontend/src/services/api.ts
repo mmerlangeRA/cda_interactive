@@ -122,8 +122,10 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
-        // If refresh fails, redirect to login
-        window.location.href = '/login';
+        // If refresh fails, redirect to login (only if not already there)
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

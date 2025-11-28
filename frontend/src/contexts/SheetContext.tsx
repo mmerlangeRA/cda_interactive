@@ -60,8 +60,31 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     console.log('SheetContext useEffect - user:', user);
     if (user) {
       loadSheets();
+    } else {
+      // Clear all data when user logs out
+      setSheets([]);
+      setSelectedSheet(null);
+      setSelectedPage(null);
+      setIsEditMode(false);
+      setPageElements([]);
     }
-  }, [user, loadSheets]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const loadPageElements = useCallback(async (pageId: number) => {
+    setIsLoading(true);
+    try {
+      const response = await InteractiveElementsAPI.list({ page: pageId });
+      // Handle both array and paginated response formats
+      const elementList = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      setPageElements(elementList);
+    } catch (error) {
+      console.error('Failed to load page elements:', error);
+      setPageElements([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const selectSheet = useCallback((sheet: Sheet | null) => {
     setSelectedSheet(sheet);
@@ -78,7 +101,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else {
       setPageElements([]);
     }
-  }, []);
+  }, [loadPageElements]);
 
   const setEditMode = useCallback((mode: boolean) => {
     setIsEditMode(mode);
@@ -90,20 +113,20 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return response.data;
   }, [loadSheets]);
 
-  const loadPageElements = useCallback(async (pageId: number) => {
-    setIsLoading(true);
-    try {
-      const response = await InteractiveElementsAPI.list({ page: pageId });
-      // Handle both array and paginated response formats
-      const elementList = Array.isArray(response.data) ? response.data : (response.data.results || []);
-      setPageElements(elementList);
-    } catch (error) {
-      console.error('Failed to load page elements:', error);
-      setPageElements([]);
-    } finally {
-      setIsLoading(false);
+  const refreshPages = useCallback(async () => {
+    if (!selectedSheet) {
+      return;
     }
-  }, []);
+
+    try {
+      await SheetPagesAPI.list({ sheet: selectedSheet.id });
+      // This will trigger a re-render in components using this data
+      // The actual pages state is managed locally in PageSelector
+    } catch (error) {
+      console.error('Failed to refresh pages:', error);
+      throw error;
+    }
+  }, [selectedSheet]);
 
   const createPage = useCallback(async () => {
     if (!selectedSheet) {
@@ -146,7 +169,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Failed to create page:', error);
       throw error;
     }
-  }, [selectedSheet]);
+  }, [selectedSheet, refreshPages, selectPage]);
 
   const deletePage = useCallback(async (pageId: number) => {
     if (!selectedSheet) {
@@ -176,22 +199,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Failed to delete page:', error);
       throw error;
     }
-  }, [selectedSheet, selectedPage]);
-
-  const refreshPages = useCallback(async () => {
-    if (!selectedSheet) {
-      return;
-    }
-
-    try {
-      await SheetPagesAPI.list({ sheet: selectedSheet.id });
-      // This will trigger a re-render in components using this data
-      // The actual pages state is managed locally in PageSelector
-    } catch (error) {
-      console.error('Failed to refresh pages:', error);
-      throw error;
-    }
-  }, [selectedSheet]);
+  }, [selectedSheet, selectedPage, refreshPages, selectPage]);
 
   const savePageElements = useCallback(async (pageId: number, elements: InteractiveElement[]) => {
     // This is a simplified save - in a real app you'd need to handle create/update/delete
