@@ -12,7 +12,10 @@ from .models import (
     PosteVarianteDocumentation,
     SheetPage,
     InteractiveElement,
-    ImageElement
+    ImageElement,
+    ReferenceValue,
+    FieldDefinitionValue,
+    ReferenceHistory
 )
 
 
@@ -86,6 +89,133 @@ class SheetAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class FieldDefinitionValueInline(admin.TabularInline):
+    """Inline admin for field definition values"""
+    model = FieldDefinitionValue
+    extra = 0
+    fields = ['name', 'type', 'language', 'value_string', 'value_int', 'value_float', 'value_image']
+    readonly_fields = []
+    
+    def get_readonly_fields(self, request, obj=None):
+        # Make fields readonly after creation to prevent accidental changes
+        if obj and obj.pk:
+            return ['name', 'type', 'language']
+        return []
+
+
+@admin.register(ReferenceValue)
+class ReferenceValueAdmin(admin.ModelAdmin):
+    list_display = ['id', 'type', 'version', 'get_reference_preview', 'created_by', 'created_at', 'updated_at']
+    list_filter = ['type', 'created_at', 'created_by']
+    search_fields = ['type', 'fields__value_string']
+    readonly_fields = ['version', 'created_at', 'updated_at', 'created_by']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    inlines = [FieldDefinitionValueInline]
+    
+    fieldsets = (
+        ('Reference Information', {
+            'fields': ('type', 'icon', 'version')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at', 'created_by'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_reference_preview(self, obj):
+        """Get preview of reference field value"""
+        ref_field = obj.fields.filter(name='reference', language='en').first()
+        if not ref_field:
+            ref_field = obj.fields.filter(name='reference').first()
+        if ref_field:
+            value = ref_field.get_value()
+            return f"{value} ({ref_field.language or 'no-lang'})" if value else '-'
+        return '-'
+    get_reference_preview.short_description = 'Reference'
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Only set created_by on creation
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(FieldDefinitionValue)
+class FieldDefinitionValueAdmin(admin.ModelAdmin):
+    list_display = ['id', 'reference', 'name', 'type', 'language', 'get_value_display']
+    list_filter = ['type', 'language', 'reference__type']
+    search_fields = ['name', 'value_string', 'reference__type']
+    readonly_fields = ['get_value_display']
+    ordering = ['reference', 'name', 'language']
+    
+    fieldsets = (
+        ('Field Information', {
+            'fields': ('reference', 'name', 'type', 'language')
+        }),
+        ('Values', {
+            'fields': ('value_string', 'value_int', 'value_float', 'value_image', 'get_value_display')
+        }),
+    )
+    
+    def get_value_display(self, obj):
+        """Display the appropriate value based on type"""
+        value = obj.get_value()
+        if obj.type == 'image' and obj.value_image:
+            return format_html(
+                '<img src="{}" style="max-width: 200px; max-height: 200px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;" /><br>{}',
+                obj.value_image.image.url,
+                obj.value_image.name
+            )
+        return value if value is not None else '-'
+    get_value_display.short_description = 'Current Value'
+
+
+@admin.register(ReferenceHistory)
+class ReferenceHistoryAdmin(admin.ModelAdmin):
+    list_display = ['id', 'reference', 'version', 'changed_by', 'changed_at', 'get_changes_summary']
+    list_filter = ['changed_at', 'changed_by', 'reference__type']
+    search_fields = ['reference__type']
+    readonly_fields = ['reference', 'version', 'changed_by', 'changed_at', 'changes', 'get_changes_display']
+    date_hierarchy = 'changed_at'
+    ordering = ['-changed_at']
+    
+    fieldsets = (
+        ('History Information', {
+            'fields': ('reference', 'version', 'changed_by', 'changed_at')
+        }),
+        ('Changes', {
+            'fields': ('get_changes_display', 'changes')
+        }),
+    )
+    
+    def get_changes_summary(self, obj):
+        """Brief summary of changes"""
+        changes = obj.changes
+        if isinstance(changes, dict):
+            if 'action' in changes:
+                return changes['action'].capitalize()
+            elif 'fields' in changes:
+                return 'Fields updated'
+            else:
+                return f"{len(changes)} fields changed"
+        return '-'
+    get_changes_summary.short_description = 'Changes'
+    
+    def get_changes_display(self, obj):
+        """Pretty display of changes"""
+        import json
+        return format_html('<pre>{}</pre>', json.dumps(obj.changes, indent=2))
+    get_changes_display.short_description = 'Changes (Formatted)'
+    
+    def has_add_permission(self, request):
+        # History entries should only be created automatically
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        # Don't allow deletion of history
+        return False
+
+
 @admin.register(PosteVarianteDocumentation)
 class PosteVarianteDocumentationAdmin(admin.ModelAdmin):
     list_display = ['poste', 'varianteGamme', 'ligne_sens', 'sheet']
@@ -111,8 +241,8 @@ class SheetPageAdmin(admin.ModelAdmin):
 
 @admin.register(InteractiveElement)
 class InteractiveElementAdmin(admin.ModelAdmin):
-    list_display = ['business_id', 'type', 'page', 'language', 'created_by', 'created_at']
-    list_filter = ['type', 'language', 'page__sheet', 'created_at', 'created_by']
+    list_display = ['business_id', 'type', 'page', 'created_by', 'created_at']
+    list_filter = ['type', 'page__sheet', 'created_at', 'created_by']
     search_fields = ['business_id', 'type', 'page__sheet__name']
     readonly_fields = ['created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'
@@ -126,8 +256,8 @@ class InteractiveElementAdmin(admin.ModelAdmin):
 
 @admin.register(ImageElement)
 class ImageElementAdmin(admin.ModelAdmin):
-    list_display = ['business_id', 'thumbnail_preview', 'page', 'language', 'width', 'height', 'created_by', 'created_at']
-    list_filter = ['language', 'page__sheet', 'created_at', 'created_by']
+    list_display = ['business_id', 'thumbnail_preview', 'page', 'width', 'height', 'created_by', 'created_at']
+    list_filter = ['page__sheet', 'created_at', 'created_by']
     search_fields = ['business_id', 'page__sheet__name']
     readonly_fields = ['thumbnail_display', 'width', 'height', 'created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'
@@ -140,8 +270,8 @@ class ImageElementAdmin(admin.ModelAdmin):
         'thumbnail_display',
         'width',
         'height',
-        'description',
-        'language',
+        'descriptions',
+        'konva_jsons',
         'created_at',
         'updated_at',
         'created_by'

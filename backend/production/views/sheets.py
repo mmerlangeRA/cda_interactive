@@ -267,7 +267,7 @@ class InteractiveElementViewSet(viewsets.ModelViewSet):
     queryset = InteractiveElement.objects.all()
     permission_classes = [IsEditorOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['page', 'business_id', 'language', 'type', 'created_by']
+    filterset_fields = ['page', 'business_id', 'type', 'created_by']
     search_fields = ['business_id', 'type']
     ordering_fields = ['created_at', 'updated_at']
     ordering = ['page', 'id']

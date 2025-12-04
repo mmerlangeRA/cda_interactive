@@ -1,4 +1,5 @@
 import { Icon, Rulers, Screwdriver } from 'react-bootstrap-icons';
+import { gabaritHandler, ReferenceElementHandler, screwHandler } from './referenceHandlers';
 
 export type FieldType = 'string' | 'int' | 'float' | 'image';
 
@@ -15,6 +16,7 @@ export interface ReferenceModel {
   label: string;
   icon: Icon;
   fields: FieldDefinitionModel[];
+  handler: ReferenceElementHandler;
 }
 
 /**
@@ -26,6 +28,7 @@ export const REFERENCE_TYPES: ReferenceModel[] = [
     type: 'screw',
     label: 'Screw',
     icon: Screwdriver,
+    handler: screwHandler,
     fields: [
       {
         name: 'reference',
@@ -47,6 +50,7 @@ export const REFERENCE_TYPES: ReferenceModel[] = [
     type: 'gabarit',
     label: 'Gabarit',
     icon: Rulers,
+    handler: gabaritHandler,
     fields: [
       {
         name: 'reference',

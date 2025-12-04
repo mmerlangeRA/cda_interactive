@@ -36,8 +36,10 @@ export interface InteractiveElement {
   sheet_name?: string;
   business_id: string;
   type: string;
-  description: object;
-  language: string;
+  descriptions: Record<string, string>; // {"en": "desc", "fr": "desc"}
+  konva_jsons: Record<string, object>; // {"en": {...}, "fr": {...}}
+  reference_value?: number | null;
+  field_values?: FieldDefinitionValue[];
   created_at: string;
   updated_at: string;
   created_by: number | null;
@@ -60,6 +62,31 @@ export interface InteractiveElementCreateUpdate {
   page: number;
   business_id: string;
   type: string;
-  description: object;
-  language: string;
+  descriptions: Record<string, string>;
+  konva_jsons: Record<string, object>;
+  reference_value?: number | null;
+  field_values_data?: FieldDefinitionValueData[];
+}
+
+export interface FieldDefinitionValue {
+  id: number;
+  name: string;
+  type: 'string' | 'int' | 'float' | 'image';
+  language?: string | null;
+  value: string | number | null;
+  value_string?: string | null;
+  value_int?: number | null;
+  value_float?: number | null;
+  value_image?: number | null;
+  image?: Record<string, unknown>; // ImageLibrary object when expanded
+}
+
+export interface FieldDefinitionValueData {
+  name: string;
+  type: 'string' | 'int' | 'float' | 'image';
+  language?: string | null;
+  value_string?: string | null;
+  value_int?: number | null;
+  value_float?: number | null;
+  value_image?: number | null;
 }

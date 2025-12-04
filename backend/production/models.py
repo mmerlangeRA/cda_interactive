@@ -187,16 +187,29 @@ class SheetPage(models.Model):
 
 class InteractiveElement(models.Model):
     page = models.ForeignKey(SheetPage, on_delete=models.CASCADE, related_name='elements', help_text="reference to the page")
-    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
+    business_id = models.CharField(max_length=100, help_text="Business identifier")
     type = models.CharField(max_length=50, help_text="Type of interactive element")
-    description = models.JSONField(help_text="JSON description of the element")
-    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
     
-    # Konva.js transform properties
-    konva_transform = models.JSONField(
+    # Multilingual fields
+    descriptions = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Descriptions by language: {'en': 'desc', 'fr': 'desc'}"
+    )
+    konva_jsons = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Konva JSON representations by language: {'en': {...}, 'fr': {...}}"
+    )
+    
+    # Reference link (for elements spawned from reference library)
+    reference_value = models.ForeignKey(
+        'ReferenceValue',
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        help_text="Konva.js transform data: {x, y, width, height, rotation, scaleX, scaleY, skewX, skewY, offsetX, offsetY, ...}"
+        related_name='canvas_instances',
+        help_text="Source reference for this element (if spawned from reference library)"
     )
     
     # Tracking fields
@@ -214,11 +227,10 @@ class InteractiveElement(models.Model):
         db_table = 'interactive_element'
         verbose_name = 'Interactive Element'
         verbose_name_plural = 'Interactive Elements'
-        unique_together = [['business_id', 'language']]
         ordering = ['page', 'id']
 
     def __str__(self):
-        return f"{self.type} - {self.business_id} ({self.language})"
+        return f"{self.type} - {self.business_id}"
 
 
 class ImageTag(models.Model):
@@ -364,12 +376,23 @@ class FieldDefinitionValue(models.Model):
     """
     Stores the actual value for a field in a reference.
     Supports multilingual values (e.g., 'reference' field in EN and FR).
+    Can belong to a ReferenceValue (template) or an InteractiveElement (instance).
     """
     reference = models.ForeignKey(
         ReferenceValue,
         on_delete=models.CASCADE,
         related_name='fields',
-        help_text="Reference to the parent ReferenceValue"
+        null=True,
+        blank=True,
+        help_text="Reference to the parent ReferenceValue (for template fields)"
+    )
+    interactive_element = models.ForeignKey(
+        InteractiveElement,
+        on_delete=models.CASCADE,
+        related_name='field_values',
+        null=True,
+        blank=True,
+        help_text="Interactive element this field value belongs to (for instance fields)"
     )
     name = models.CharField(max_length=100, help_text="Field name (e.g., 'reference', 'image')")
     type = models.CharField(
@@ -399,8 +422,7 @@ class FieldDefinitionValue(models.Model):
         db_table = 'field_definition_value'
         verbose_name = 'Field Definition Value'
         verbose_name_plural = 'Field Definition Values'
-        unique_together = [['reference', 'name', 'language']]
-        ordering = ['reference', 'name', 'language']
+        ordering = ['reference', 'interactive_element', 'name', 'language']
     
     def __str__(self):
         lang_str = f" ({self.language})" if self.language else ""

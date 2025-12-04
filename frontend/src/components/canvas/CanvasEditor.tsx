@@ -1,7 +1,11 @@
 import Konva from 'konva';
 import React, { useRef } from 'react';
 import { Layer, Stage } from 'react-konva';
+import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHandlers';
 import { useCanvas } from '../../contexts/CanvasContext';
+import { ImageElement as ImageElementType, TextElement as TextElementType } from '../../types/canvas';
+import { GabaritElement } from './elements/GabaritElement';
+import { ScrewElement } from './elements/ScrewElement';
 import { ImageElement } from './ImageElement';
 import { TextElement } from './TextElement';
 
@@ -53,23 +57,43 @@ export const CanvasEditor: React.FC = () => {
         <Layer>
           {elements.map((element) => {
             const isSelected = element.id === selectedId;
-            if (element.type === 'text') {
+            const elementType = (element as {type: string}).type;
+            
+            // Render based on element type
+            if (elementType === 'text') {
               return (
                 <TextElement
                   key={element.id}
-                  element={element}
+                  element={element as TextElementType}
                   isSelected={isSelected}
                 />
               );
-            } else if (element.type === 'image') {
+            } else if (elementType === 'image') {
               return (
                 <ImageElement
                   key={element.id}
-                  element={element}
+                  element={element as ImageElementType}
+                  isSelected={isSelected}
+                />
+              );
+            } else if (elementType === 'screw') {
+              return (
+                <ScrewElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
+                  isSelected={isSelected}
+                />
+              );
+            } else if (elementType === 'gabarit') {
+              return (
+                <GabaritElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
                   isSelected={isSelected}
                 />
               );
             }
+            
             return null;
           })}
         </Layer>

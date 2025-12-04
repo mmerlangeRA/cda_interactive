@@ -205,7 +205,7 @@ export const InteractiveElementsAPI = {
     if (params?.type) queryParams.append('type', params.type);
     if (params?.search) queryParams.append('search', params.search);
     const query = queryParams.toString();
-    return api.get<{ results: InteractiveElement[]; count: number }>(`/elements/${query ? `?${query}` : ''}`);
+    return api.get<InteractiveElement[]>(`/elements/${query ? `?${query}` : ''}`);
   },
   get: (id: number) => api.get<InteractiveElement>(`/elements/${id}/`),
   create: async (data: InteractiveElementCreateUpdate) => {

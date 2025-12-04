@@ -1,14 +1,74 @@
 import React from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
+import { ElementInspector } from '../components/canvas/ElementInspector';
+import { ReferencePanel } from '../components/canvas/ReferencePanel';
 import { ModeToggle } from '../components/pageView/ModeToggle';
 import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
 import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
 import { SheetSidebar } from '../components/sheets/SheetSidebar';
 import { Toolbar } from '../components/toolbar/Toolbar';
-import { CanvasProvider } from '../contexts/CanvasContext';
+import { getReferenceModel } from '../config/references';
+import { CanvasProvider, useCanvas } from '../contexts/CanvasContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ReferenceProvider, useReference } from '../contexts/ReferenceContext';
 import { useSheet } from '../contexts/SheetContext';
+import { ReferenceValue } from '../types/reference';
+
+const EditorLayout: React.FC = () => {
+  const { addReferenceElement, loadElements, clearElements } = useCanvas();
+  const { fetchReferences } = useReference();
+  const { selectedPage } = useSheet();
+
+  // Fetch references when component mounts
+  React.useEffect(() => {
+    fetchReferences();
+  }, [fetchReferences]);
+
+  // Load elements when page changes
+  React.useEffect(() => {
+    if (selectedPage) {
+      loadElements(selectedPage.id, 'en'); // TODO: Use current language from context
+    } else {
+      clearElements();
+    }
+  }, [selectedPage, loadElements, clearElements]);
+
+  const handleSpawnReference = (reference: ReferenceValue) => {
+    // Get the handler for this reference type
+    const model = getReferenceModel(reference.type);
+    if (!model) {
+      console.error(`No handler found for reference type: ${reference.type}`);
+      return;
+    }
+
+    // Use the handler to spawn a canvas element from the reference
+    const canvasElement = model.handler.spawn(reference, { x: 400, y: 300 });
+    addReferenceElement(canvasElement);
+  };
+
+  return (
+    <div className="h-100 d-flex flex-column">
+      <Toolbar />
+      <div className="flex-grow-1 d-flex overflow-hidden">
+        {/* Left Panel - Reference Library */}
+        <div style={{ width: '300px', borderRight: '1px solid #dee2e6' }}>
+          <ReferencePanel onSpawnReference={handleSpawnReference} />
+        </div>
+
+        {/* Center - Canvas Editor */}
+        <div className="flex-grow-1 d-flex justify-content-center align-items-center p-4" style={{ backgroundColor: '#f8f9fa' }}>
+          <CanvasEditor />
+        </div>
+
+        {/* Right Panel - Element Inspector */}
+        <div style={{ width: '300px', borderLeft: '1px solid #dee2e6' }}>
+          <ElementInspector />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
@@ -41,15 +101,12 @@ const DashboardPage: React.FC = () => {
               <div className="flex-grow-1 overflow-auto">
                 {selectedPage ? (
                   isEditMode ? (
-                    // Edit Mode - Show Canvas Editor
-                    <CanvasProvider>
-                      <div className="h-100 d-flex flex-column">
-                        <Toolbar />
-                        <div className="flex-grow-1 d-flex justify-content-center align-items-center p-4">
-                          <CanvasEditor />
-                        </div>
-                      </div>
-                    </CanvasProvider>
+                    // Edit Mode - Show Canvas Editor with 3-column layout
+                    <ReferenceProvider>
+                      <CanvasProvider>
+                        <EditorLayout />
+                      </CanvasProvider>
+                    </ReferenceProvider>
                   ) : (
                     // View Mode - Show Page Viewer
                     <PageViewer />

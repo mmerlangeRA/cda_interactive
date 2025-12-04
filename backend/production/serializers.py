@@ -7,6 +7,9 @@ from .models import (
 
 class InteractiveElementSerializer(serializers.ModelSerializer):
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    reference = serializers.SerializerMethodField()
+    field_values = serializers.SerializerMethodField()
+    field_values_data = serializers.ListField(write_only=True, required=False)
     
     class Meta:
         model = InteractiveElement
@@ -15,9 +18,12 @@ class InteractiveElementSerializer(serializers.ModelSerializer):
             'page',
             'business_id',
             'type',
-            'description',
-            'konva_transform',
-            'language',
+            'descriptions',
+            'konva_jsons',
+            'reference_value',
+            'reference',
+            'field_values',
+            'field_values_data',
             'created_at',
             'updated_at',
             'created_by',
@@ -25,10 +31,67 @@ class InteractiveElementSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username']
     
+    def get_reference(self, obj):
+        """Include full reference data for read operations"""
+        if obj.reference_value:
+            from .serializers import ReferenceValueSerializer
+            return ReferenceValueSerializer(obj.reference_value, context=self.context).data
+        return None
+    
+    def get_field_values(self, obj):
+        """Serialize related field values"""
+        return FieldDefinitionValueSerializer(obj.field_values.all(), many=True).data
+    
     def create(self, validated_data):
-        # Automatically set created_by from request user
+        field_values_data = validated_data.pop('field_values_data', [])
         validated_data['created_by'] = self.context['request'].user
-        return super().create(validated_data)
+        
+        element = InteractiveElement.objects.create(**validated_data)
+        
+        # Create field values if provided
+        for field_data in field_values_data:
+            # Handle image field specially
+            if 'value_image' in field_data and field_data['value_image'] is not None:
+                from .models import ImageLibrary
+                image_id = field_data.pop('value_image')
+                try:
+                    image_instance = ImageLibrary.objects.get(id=image_id)
+                    field_data['value_image'] = image_instance
+                except ImageLibrary.DoesNotExist:
+                    field_data['value_image'] = None
+            
+            FieldDefinitionValue.objects.create(interactive_element=element, **field_data)
+        
+        return element
+    
+    def update(self, instance, validated_data):
+        field_values_data = validated_data.pop('field_values_data', None)
+        
+        # Update element fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update field values if provided
+        if field_values_data is not None:
+            # Delete existing field values
+            instance.field_values.all().delete()
+            
+            # Create new field values
+            for field_data in field_values_data:
+                # Handle image field specially
+                if 'value_image' in field_data and field_data['value_image'] is not None:
+                    from .models import ImageLibrary
+                    image_id = field_data.pop('value_image')
+                    try:
+                        image_instance = ImageLibrary.objects.get(id=image_id)
+                        field_data['value_image'] = image_instance
+                    except ImageLibrary.DoesNotExist:
+                        field_data['value_image'] = None
+                
+                FieldDefinitionValue.objects.create(interactive_element=instance, **field_data)
+        
+        return instance
 
 
 class SheetPageSerializer(serializers.ModelSerializer):
@@ -156,8 +219,8 @@ class InteractiveElementListSerializer(serializers.ModelSerializer):
             'sheet_name',
             'business_id',
             'type',
-            'konva_transform',
-            'language',
+            'descriptions',
+            'konva_jsons',
             'created_at',
             'updated_at',
             'created_by',

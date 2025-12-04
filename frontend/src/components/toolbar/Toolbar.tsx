@@ -1,12 +1,18 @@
 import React, { useRef, useState } from 'react';
-import { Button, ButtonGroup } from 'react-bootstrap';
-import { ChevronDown, ChevronUp, Image, Trash, TypeBold } from 'react-bootstrap-icons';
+import { Button, ButtonGroup, Spinner } from 'react-bootstrap';
+import { ChevronDown, ChevronUp, Image, Save, Trash, TypeBold } from 'react-bootstrap-icons';
 import { useCanvas } from '../../contexts/CanvasContext';
+import { useError } from '../../contexts/ErrorContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useSheet } from '../../contexts/SheetContext';
+import { useSuccess } from '../../contexts/SuccessContext';
 
 export const Toolbar: React.FC = () => {
   const { t } = useLanguage();
-  const { addTextElement, addImageElement, selectedId, deleteSelected } = useCanvas();
+  const { addTextElement, addImageElement, selectedId, deleteSelected, saveElements, saving } = useCanvas();
+  const { selectedPage } = useSheet();
+  const { setError } = useError();
+  const { setSuccess } = useSuccess();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -28,6 +34,21 @@ export const Toolbar: React.FC = () => {
     }
     // Reset input value to allow selecting the same file again
     e.target.value = '';
+  };
+
+  const handleSave = async () => {
+    if (!selectedPage) {
+      setError('No page selected');
+      return;
+    }
+
+    try {
+      await saveElements(selectedPage.id, 'en'); // TODO: Use current language
+      setSuccess('Elements saved successfully');
+    } catch (error) {
+      setError('Failed to save elements');
+      console.error('Save error:', error);
+    }
   };
 
   return (
@@ -64,6 +85,24 @@ export const Toolbar: React.FC = () => {
           </div>
 
           <div className="d-flex align-items-center gap-2">
+            <Button
+              variant="success"
+              onClick={handleSave}
+              disabled={saving || !selectedPage}
+              className="d-flex align-items-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <Spinner animation="border" size="sm" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save size={18} />
+                  Save
+                </>
+              )}
+            </Button>
             {selectedId && (
               <Button
                 variant="danger"
