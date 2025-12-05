@@ -18,7 +18,6 @@ interface CanvasContextType {
   loading: boolean;
   setCanvasDimensions: (height: number) => void;
   addFreeTextElement: () => void;
-  addImageElement: (src: string) => void;
   addFreeImageElement: () => void;
   addFreeVideoElement: () => void;
   addVideoElement: (src: string) => void;
@@ -127,33 +126,6 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     addElementToCanvas(newElement);
   }, [addElementToCanvas]);
 
-  const addImageElement = useCallback((src: string) => {
-    const img = new Image();
-    img.src = src;
-    img.onload = () => {
-      const maxWidth = 400;
-      const maxHeight = 400;
-      let width = img.width;
-      let height = img.height;
-
-      // Scale down if too large
-      if (width > maxWidth || height > maxHeight) {
-        const ratio = Math.min(maxWidth / width, maxHeight / height);
-        width = width * ratio;
-        height = height * ratio;
-      }
-
-      // Use freeImageHandler to create the element
-      const newElement = freeImageHandler.createFromImage(
-        src,
-        { x: 100, y: 100 },
-        width,
-        height
-      );
-      
-      addElementToCanvas(newElement);
-    };
-  }, [addElementToCanvas]);
 
   const addReferenceElement = useCallback((element: HandlerCanvasElement) => {
     addElementToCanvas(element);
@@ -376,7 +348,6 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loading,
         setCanvasDimensions,
         addFreeTextElement,
-        addImageElement,
         addFreeImageElement,
         addFreeVideoElement,
         addVideoElement,

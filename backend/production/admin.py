@@ -78,8 +78,8 @@ class ProductionPlanningLineAdmin(admin.ModelAdmin):
 
 @admin.register(Sheet)
 class SheetAdmin(admin.ModelAdmin):
-    list_display = ['name', 'business_id', 'language', 'created_by', 'created_at', 'updated_at']
-    list_filter = ['language', 'created_at', 'created_by']
+    list_display = ['name', 'business_id', 'created_by', 'created_at', 'updated_at']
+    list_filter = ['created_at', 'created_by']
     search_fields = ['name', 'business_id']
     readonly_fields = ['created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'

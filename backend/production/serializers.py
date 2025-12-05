@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
     Sheet, SheetPage, InteractiveElement, MediaTag, MediaLibrary,
-    ReferenceValue, FieldDefinitionValue, ReferenceHistory
+    ReferenceValue, FieldDefinitionValue, ReferenceHistory,
+    Boat, GammeCabine, VarianteGamme, Cabine, Ligne, Poste
 )
 
 
@@ -136,7 +137,6 @@ class SheetSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'business_id',
-            'language',
             'created_at',
             'updated_at',
             'created_by',
@@ -166,7 +166,6 @@ class SheetListSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'business_id',
-            'language',
             'created_at',
             'updated_at',
             'created_by',
@@ -558,3 +557,54 @@ class ReferenceValueListSerializer(serializers.ModelSerializer):
             }
         
         return None
+
+
+# Filter entity serializers for sheet filtering
+class BoatSerializer(serializers.ModelSerializer):
+    """Serializer for Boat model"""
+    class Meta:
+        model = Boat
+        fields = ['id', 'internal_id', 'name']
+
+
+class GammeCabineSerializer(serializers.ModelSerializer):
+    """Serializer for GammeCabine model"""
+    boat_name = serializers.CharField(source='boat.name', read_only=True)
+    
+    class Meta:
+        model = GammeCabine
+        fields = ['id', 'internal_id', 'boat', 'boat_name']
+
+
+class VarianteGammeSerializer(serializers.ModelSerializer):
+    """Serializer for VarianteGamme model"""
+    gamme_internal_id = serializers.CharField(source='gamme.internal_id', read_only=True)
+    
+    class Meta:
+        model = VarianteGamme
+        fields = ['id', 'internal_id', 'gamme', 'gamme_internal_id']
+
+
+class CabineSerializer(serializers.ModelSerializer):
+    """Serializer for Cabine model"""
+    variante_internal_id = serializers.CharField(source='variante_gamme.internal_id', read_only=True)
+    
+    class Meta:
+        model = Cabine
+        fields = ['id', 'internal_id', 'variante_gamme', 'variante_internal_id']
+
+
+class LigneSerializer(serializers.ModelSerializer):
+    """Serializer for Ligne model"""
+    class Meta:
+        model = Ligne
+        fields = ['id', 'internal_id', 'name']
+
+
+class PosteSerializer(serializers.ModelSerializer):
+    """Serializer for Poste model"""
+    ligne_name = serializers.CharField(source='ligne.name', read_only=True)
+    
+    class Meta:
+        model = Poste
+        fields = ['id', 'internal_id', 'ligne', 'ligne_name']

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { InteractiveElementsAPI, SheetPagesAPI, SheetsAPI } from '../services/api';
-import { InteractiveElement, Sheet, SheetPage } from '../types';
+import { InteractiveElement, Sheet, SheetFilters, SheetPage } from '../types';
 import { useAuth } from './AuthContext';
 
 interface SheetContextType {
@@ -14,12 +14,13 @@ interface SheetContextType {
   selectSheet: (sheet: Sheet | null) => void;
   selectPage: (page: SheetPage | null) => void;
   setEditMode: (mode: boolean) => void;
-  createSheet: (data: { name: string; business_id: string; language: string }) => Promise<Sheet>;
+  createSheet: (data: { name: string; business_id: string }) => Promise<Sheet>;
   createPage: () => Promise<SheetPage | null>;
   deletePage: (pageId: number) => Promise<void>;
   refreshPages: () => Promise<void>;
   loadPageElements: (pageId: number) => Promise<void>;
   savePageElements: (pageId: number, elements: InteractiveElement[]) => Promise<void>;
+  applyFilters: (filters: SheetFilters) => Promise<void>;
 }
 
 const SheetContext = createContext<SheetContextType | undefined>(undefined);
@@ -107,11 +108,29 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsEditMode(mode);
   }, []);
 
-  const createSheet = useCallback(async (data: { name: string; business_id: string; language: string }) => {
+  const createSheet = useCallback(async (data: { name: string; business_id: string }) => {
     const response = await SheetsAPI.create(data);
     await loadSheets();
     return response.data;
   }, [loadSheets]);
+
+  const applyFilters = useCallback(async (filters: SheetFilters) => {
+    if (!user) {
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      const response = await SheetsAPI.list(filters);
+      const sheetList = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      setSheets(sheetList);
+    } catch (error) {
+      console.error('Failed to apply filters:', error);
+      setSheets([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const refreshPages = useCallback(async () => {
     if (!selectedSheet) {
@@ -227,6 +246,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         refreshPages,
         loadPageElements,
         savePageElements,
+        applyFilters,
       }}
     >
       {children}

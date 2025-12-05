@@ -50,7 +50,7 @@ export abstract class ReferenceElementHandler {
    * Serialize element to backend format
    * Converts canvas element to InteractiveElement data
    */
-  serialize(element: CanvasElement): Record<string, unknown> {
+  serialize(element: CanvasElement,language:string): Record<string, unknown> {
     return {
       business_id: element.id,
       type: this.type,
@@ -65,7 +65,7 @@ export abstract class ReferenceElementHandler {
         scaleY: element.scaleY || 1,
       },
       description: this.serializeDescription(element),
-      language: 'en', // Default language
+      language: language, // Default language
     };
   }
   
@@ -144,7 +144,7 @@ export abstract class ReferenceElementHandler {
     currentLang: string
   ): { descriptions: Record<string, string>; konva_jsons: Record<string, object> } {
     // Default implementation: single-language save
-    const serialized = this.serialize(element);
+    const serialized = this.serialize(element,currentLang);
     
     return {
       descriptions: {

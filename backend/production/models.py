@@ -101,8 +101,7 @@ class ProductionPlanningLine(models.Model):
 
 class Sheet(models.Model):
     name = models.CharField(max_length=200, help_text="Name of the sheet")
-    business_id = models.CharField(max_length=100, help_text="Business identifier for translation")
-    language = models.CharField(max_length=10, help_text="Language code (e.g., en, fr, es)", default="en")
+    business_id = models.CharField(max_length=100, unique=True, help_text="Business identifier")
     
     # Tracking fields
     created_at = models.DateTimeField(auto_now_add=True, help_text="When the sheet was created")
@@ -119,11 +118,10 @@ class Sheet(models.Model):
         db_table = 'sheet'
         verbose_name = 'Sheet'
         verbose_name_plural = 'Sheets'
-        unique_together = [['business_id', 'language']]
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.name} ({self.business_id} - {self.language})"
+        return f"{self.name} ({self.business_id})"
 
 
 class PosteVarianteDocumentation(models.Model):

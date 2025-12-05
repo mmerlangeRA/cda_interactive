@@ -136,10 +136,10 @@ export class FreeVideoElementHandler extends ReferenceElementHandler {
     // Both languages use the same video URL (videos are not language-specific)
     // But descriptions can be different per language
     const enElement = { ...element, videoUrl, description: element.description || '' };
-    const enSerialized = this.serialize(enElement);
+    const enSerialized = this.serialize(enElement,"en");
     
     const frElement = { ...element, videoUrl, description: '' }; // Empty description for FR initially
-    const frSerialized = this.serialize(frElement);
+    const frSerialized = this.serialize(frElement,"fr");
     
     return {
       en: enSerialized,

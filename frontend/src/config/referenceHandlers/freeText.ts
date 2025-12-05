@@ -99,11 +99,11 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
   createMultilingualSerialization(element: CanvasElement): Record<string, object> {
     // Create EN version with "text"
     const enElement = { ...element, description: 'text', text: 'text' };
-    const enSerialized = this.serialize(enElement);
+    const enSerialized = this.serialize(enElement,"en");
     
     // Create FR version with "texte"
     const frElement = { ...element, description: 'texte', text: 'texte' };
-    const frSerialized = this.serialize(frElement);
+    const frSerialized = this.serialize(frElement,"fr");
     
     return {
       en: enSerialized,

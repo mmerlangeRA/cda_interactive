@@ -6,7 +6,6 @@ export interface Sheet {
   id: number;
   name: string;
   business_id: string;
-  language: string;
   created_at: string;
   updated_at: string;
   created_by: number | null;
@@ -50,7 +49,6 @@ export interface InteractiveElement {
 export interface SheetCreateUpdate {
   name: string;
   business_id: string;
-  language: string;
 }
 
 export interface SheetPageCreateUpdate {
@@ -91,4 +89,55 @@ export interface FieldDefinitionValueData {
   value_int?: number | null;
   value_float?: number | null;
   value_image?: number | null;
+}
+
+// Filter entities for sheet filtering
+export interface Boat {
+  id: number;
+  internal_id: string;
+  name: string;
+}
+
+export interface GammeCabine {
+  id: number;
+  internal_id: string;
+  boat: number;
+  boat_name?: string;
+}
+
+export interface VarianteGamme {
+  id: number;
+  internal_id: string;
+  gamme: number;
+  gamme_internal_id?: string;
+}
+
+export interface Cabine {
+  id: number;
+  internal_id: string;
+  variante_gamme: number;
+  variante_internal_id?: string;
+}
+
+export interface Ligne {
+  id: number;
+  internal_id: string;
+  name: string;
+}
+
+export interface Poste {
+  id: number;
+  internal_id: string;
+  ligne: number;
+  ligne_name?: string;
+}
+
+export interface SheetFilters {
+  boat?: number;
+  gamme_cabine?: number;
+  variante_gamme?: number;
+  cabine?: number;
+  ligne?: number;
+  poste?: number;
+  ligne_sens?: 'D' | 'G' | '-';
 }

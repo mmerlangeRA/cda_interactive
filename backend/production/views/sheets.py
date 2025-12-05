@@ -23,14 +23,67 @@ class SheetViewSet(viewsets.ModelViewSet):
     
     Only EDITOR and ADMIN users can create, update, or delete.
     All authenticated users can read.
+    
+    Supports filtering by:
+    - boat, gamme_cabine, variante_gamme, cabine (boat hierarchy)
+    - ligne, poste, ligne_sens (ligne hierarchy)
     """
     queryset = Sheet.objects.all()
     permission_classes = [IsEditorOrAdmin]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['business_id', 'language', 'created_by']
+    filterset_fields = ['business_id', 'created_by']
     search_fields = ['name', 'business_id']
     ordering_fields = ['created_at', 'updated_at', 'name']
     ordering = ['-created_at']
+    
+    def get_queryset(self):
+        """
+        Optionally restricts the returned sheets by filtering against
+        boat/ligne hierarchies via PosteVarianteDocumentation
+        """
+        queryset = super().get_queryset()
+        
+        # Get filter parameters
+        boat_id = self.request.query_params.get('boat')
+        gamme_cabine_id = self.request.query_params.get('gamme_cabine')
+        variante_gamme_id = self.request.query_params.get('variante_gamme')
+        cabine_id = self.request.query_params.get('cabine')
+        ligne_id = self.request.query_params.get('ligne')
+        poste_id = self.request.query_params.get('poste')
+        ligne_sens = self.request.query_params.get('ligne_sens')
+        
+        # If any filters are provided, filter through PosteVarianteDocumentation
+        if any([boat_id, gamme_cabine_id, variante_gamme_id, cabine_id, ligne_id, poste_id, ligne_sens]):
+            from ..models import PosteVarianteDocumentation
+            
+            # Start with all documentation records
+            docs = PosteVarianteDocumentation.objects.all()
+            
+            # Apply boat hierarchy filters
+            if cabine_id:
+                docs = docs.filter(varianteGamme__cabine__id=cabine_id)
+            elif variante_gamme_id:
+                docs = docs.filter(varianteGamme__id=variante_gamme_id)
+            elif gamme_cabine_id:
+                docs = docs.filter(varianteGamme__gamme__id=gamme_cabine_id)
+            elif boat_id:
+                docs = docs.filter(varianteGamme__gamme__boat__id=boat_id)
+            
+            # Apply ligne hierarchy filters
+            if poste_id:
+                docs = docs.filter(poste__id=poste_id)
+            elif ligne_id:
+                docs = docs.filter(poste__ligne__id=ligne_id)
+            
+            # Apply ligne_sens filter
+            if ligne_sens:
+                docs = docs.filter(ligne_sens=ligne_sens)
+            
+            # Get sheet IDs from filtered documentation
+            sheet_ids = docs.values_list('sheet_id', flat=True).distinct()
+            queryset = queryset.filter(id__in=sheet_ids)
+        
+        return queryset
     
     def get_serializer_class(self):
         if self.action == 'list':
@@ -369,3 +422,61 @@ class InteractiveElementViewSet(viewsets.ModelViewSet):
         elements = self.queryset.filter(business_id=business_id)
         serializer = InteractiveElementListSerializer(elements, many=True)
         return Response(serializer.data)
+
+
+# Filter entity viewsets
+from ..models import Boat, GammeCabine, VarianteGamme, Cabine, Ligne, Poste, PosteVarianteDocumentation
+from ..serializers import (
+    BoatSerializer, GammeCabineSerializer, VarianteGammeSerializer,
+    CabineSerializer, LigneSerializer, PosteSerializer
+)
+
+
+class BoatViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing boats (read-only)"""
+    queryset = Boat.objects.all().order_by('name')
+    serializer_class = BoatSerializer
+    permission_classes = [IsEditorOrAdmin]
+
+
+class GammeCabineViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing gamme cabines (read-only), filterable by boat"""
+    queryset = GammeCabine.objects.all().order_by('internal_id')
+    serializer_class = GammeCabineSerializer
+    permission_classes = [IsEditorOrAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['boat']
+
+
+class VarianteGammeViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing variante gammes (read-only), filterable by gamme"""
+    queryset = VarianteGamme.objects.all().order_by('internal_id')
+    serializer_class = VarianteGammeSerializer
+    permission_classes = [IsEditorOrAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['gamme']
+
+
+class CabineViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing cabines (read-only), filterable by variante_gamme"""
+    queryset = Cabine.objects.all().order_by('internal_id')
+    serializer_class = CabineSerializer
+    permission_classes = [IsEditorOrAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['variante_gamme']
+
+
+class LigneViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing lignes (read-only)"""
+    queryset = Ligne.objects.all().order_by('name')
+    serializer_class = LigneSerializer
+    permission_classes = [IsEditorOrAdmin]
+
+
+class PosteViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing postes (read-only), filterable by ligne"""
+    queryset = Poste.objects.all().order_by('internal_id')
+    serializer_class = PosteSerializer
+    permission_classes = [IsEditorOrAdmin]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['ligne']

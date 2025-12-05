@@ -1,11 +1,11 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
-import {
+import type {
   InteractiveElement,
   InteractiveElementCreateUpdate,
   Sheet,
   SheetCreateUpdate,
   SheetPage,
-  SheetPageCreateUpdate,
+  SheetPageCreateUpdate
 } from "../types";
 
 const api = axios.create({
@@ -136,11 +136,27 @@ api.interceptors.response.use(
 
 
 export const SheetsAPI = {
-  list: (params?: { business_id?: string; language?: string; search?: string }) => {
+  list: (params?: { 
+    business_id?: string; 
+    search?: string;
+    boat?: number;
+    gamme_cabine?: number;
+    variante_gamme?: number;
+    cabine?: number;
+    ligne?: number;
+    poste?: number;
+    ligne_sens?: string;
+  }) => {
     const queryParams = new URLSearchParams();
     if (params?.business_id) queryParams.append('business_id', params.business_id);
-    if (params?.language) queryParams.append('language', params.language);
     if (params?.search) queryParams.append('search', params.search);
+    if (params?.boat) queryParams.append('boat', params.boat.toString());
+    if (params?.gamme_cabine) queryParams.append('gamme_cabine', params.gamme_cabine.toString());
+    if (params?.variante_gamme) queryParams.append('variante_gamme', params.variante_gamme.toString());
+    if (params?.cabine) queryParams.append('cabine', params.cabine.toString());
+    if (params?.ligne) queryParams.append('ligne', params.ligne.toString());
+    if (params?.poste) queryParams.append('poste', params.poste.toString());
+    if (params?.ligne_sens) queryParams.append('ligne_sens', params.ligne_sens);
     const query = queryParams.toString();
     return api.get<{ results: Sheet[]; count: number }>(`/sheets/${query ? `?${query}` : ''}`);
   },
@@ -226,6 +242,43 @@ export const InteractiveElementsAPI = {
   },
   getByBusinessId: (businessId: string) =>
     api.get<InteractiveElement[]>(`/elements/by_business_id/?business_id=${businessId}`),
+};
+
+// Filter entity APIs for sheet filtering
+export const BoatsAPI = {
+  list: () => api.get<Array<{id: number; internal_id: string; name: string}>>('/boats/'),
+};
+
+export const GammeCabinesAPI = {
+  list: (boatId?: number) => {
+    const query = boatId ? `?boat=${boatId}` : '';
+    return api.get<Array<{id: number; internal_id: string; boat: number; boat_name?: string}>>(`/gamme-cabines/${query}`);
+  },
+};
+
+export const VarianteGammesAPI = {
+  list: (gammeId?: number) => {
+    const query = gammeId ? `?gamme=${gammeId}` : '';
+    return api.get<Array<{id: number; internal_id: string; gamme: number; gamme_internal_id?: string}>>(`/variante-gammes/${query}`);
+  },
+};
+
+export const CabinesAPI = {
+  list: (varianteId?: number) => {
+    const query = varianteId ? `?variante_gamme=${varianteId}` : '';
+    return api.get<Array<{id: number; internal_id: string; variante_gamme: number; variante_internal_id?: string}>>(`/cabines/${query}`);
+  },
+};
+
+export const LignesAPI = {
+  list: () => api.get<Array<{id: number; internal_id: string; name: string}>>('/lignes/'),
+};
+
+export const PostesAPI = {
+  list: (ligneId?: number) => {
+    const query = ligneId ? `?ligne=${ligneId}` : '';
+    return api.get<Array<{id: number; internal_id: string; ligne: number; ligne_name?: string}>>(`/postes/${query}`);
+  },
 };
 
 export default api;

@@ -1,0 +1,40 @@
+{
+  "en": {
+    "type": "freeImage",
+    "language": "en",
+    "business_id": "freeImage-1764940571130-jxs30uo7h",
+    "description": {
+      "opacity": 1,
+      "imageUrl": "data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"150\"%3E%3Crect width=\"200\" height=\"150\" fill=\"%23cccccc\"/%3E%3Ctext x=\"50%25\" y=\"50%25\" font-family=\"Arial\" font-size=\"16\" fill=\"%23666666\" text-anchor=\"middle\" dominant-baseline=\"middle\"%3ENo Image%3C/text%3E%3C/svg%3E",
+      "description": ""
+    },
+    "konva_transform": {
+      "x": 297,
+      "y": 153,
+      "width": 400,
+      "height": 300,
+      "scaleX": 1,
+      "scaleY": 1,
+      "rotation": 0
+    }
+  },
+  "fr": {
+    "type": "freeImage",
+    "language": "en",
+    "business_id": "freeImage-1764940571130-jxs30uo7h",
+    "description": {
+      "opacity": 1,
+      "imageUrl": "http://localhost:8001/media/library_images/2025/11/28/IMG_0156.jpeg",
+      "description": ""
+    },
+    "konva_transform": {
+      "x": 297,
+      "y": 153,
+      "width": 400,
+      "height": 300,
+      "scaleX": 1,
+      "scaleY": 1,
+      "rotation": 0
+    }
+  }
+}

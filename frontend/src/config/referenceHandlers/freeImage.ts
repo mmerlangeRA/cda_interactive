@@ -58,29 +58,6 @@ export class FreeImageElementHandler extends ReferenceElementHandler {
     };
   }
   
-  /**
-   * Create a freeImage element from an image URL
-   * This is the primary way to create freeImage elements
-   */
-  createFromImage(imageUrl: string, position: SpawnPosition, width: number, height: number): CanvasElement {
-    const defaults = this.getDefaultProperties();
-    
-    return {
-      id: this.generateId(),
-      type: this.type,
-      referenceId: undefined, // No reference for free images
-      x: position.x,
-      y: position.y,
-      width: width || defaults.width || 100,
-      height: height || defaults.height || 100,
-      rotation: defaults.rotation || 0,
-      scaleX: defaults.scaleX || 1,
-      scaleY: defaults.scaleY || 1,
-      opacity: defaults.opacity || 1,
-      imageUrl,
-      description: '', // Empty description by default
-    };
-  }
   
   getDefaultProperties(): Partial<CanvasElement> {
     return {
@@ -116,10 +93,10 @@ export class FreeImageElementHandler extends ReferenceElementHandler {
     // For now, both languages use the same grey placeholder
     // In the future, this could be customized per language
     const enElement = { ...element, imageUrl: PLACEHOLDER_IMAGE, description: '' };
-    const enSerialized = this.serialize(enElement);
+    const enSerialized = this.serialize(enElement,"en");
     
     const frElement = { ...element, imageUrl: PLACEHOLDER_IMAGE, description: '' };
-    const frSerialized = this.serialize(frElement);
+    const frSerialized = this.serialize(frElement,"fr");
     
     return {
       en: enSerialized,
