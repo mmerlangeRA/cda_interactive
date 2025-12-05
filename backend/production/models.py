@@ -189,6 +189,7 @@ class InteractiveElement(models.Model):
     page = models.ForeignKey(SheetPage, on_delete=models.CASCADE, related_name='elements', help_text="reference to the page")
     business_id = models.CharField(max_length=100, help_text="Business identifier")
     type = models.CharField(max_length=50, help_text="Type of interactive element")
+    z_order = models.IntegerField(default=0, help_text="Z-order for layering (higher values appear on top)")
     
     # Multilingual fields
     descriptions = models.JSONField(
@@ -227,7 +228,7 @@ class InteractiveElement(models.Model):
         db_table = 'interactive_element'
         verbose_name = 'Interactive Element'
         verbose_name_plural = 'Interactive Elements'
-        ordering = ['page', 'id']
+        ordering = ['page', 'z_order', 'id']
 
     def __str__(self):
         return f"{self.type} - {self.business_id}"

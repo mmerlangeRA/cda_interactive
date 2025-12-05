@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Button, ButtonGroup, Spinner } from 'react-bootstrap';
 import { ChevronDown, ChevronUp, Image, Save, Trash, TypeBold } from 'react-bootstrap-icons';
 import { useCanvas } from '../../contexts/CanvasContext';
@@ -9,32 +9,11 @@ import { useSuccess } from '../../contexts/SuccessContext';
 
 export const Toolbar: React.FC = () => {
   const { t } = useLanguage();
-  const { addTextElement, addImageElement, selectedId, deleteSelected, saveElements, saving } = useCanvas();
+  const { addFreeTextElement, addFreeImageElement, selectedId, deleteSelected, saveElements, saving } = useCanvas();
   const { selectedPage } = useSheet();
   const { setError } = useError();
   const { setSuccess } = useSuccess();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleAddImage = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        if (result) {
-          addImageElement(result);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  };
 
   const handleSave = async () => {
     if (!selectedPage) {
@@ -67,7 +46,7 @@ export const Toolbar: React.FC = () => {
             <ButtonGroup>
               <Button
                 variant="primary"
-                onClick={addTextElement}
+                onClick={addFreeTextElement}
                 className="d-flex align-items-center gap-2"
               >
                 <TypeBold size={18} />
@@ -75,11 +54,11 @@ export const Toolbar: React.FC = () => {
               </Button>
               <Button
                 variant="primary"
-                onClick={handleAddImage}
+                onClick={addFreeImageElement}
                 className="d-flex align-items-center gap-2"
               >
                 <Image size={18} />
-                {t('canvas.toolbar.addImage')}
+                {t('canvas.toolbar.addFreeImage')}
               </Button>
             </ButtonGroup>
           </div>
@@ -137,14 +116,6 @@ export const Toolbar: React.FC = () => {
           </Button>
         </div>
       )}
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleFileChange}
-      />
     </div>
   );
 };

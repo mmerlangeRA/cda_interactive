@@ -1,15 +1,20 @@
-import React from 'react';
-import { Badge, Button, Card, Form } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Badge, Button, ButtonGroup, Card, Form, Modal } from 'react-bootstrap';
+import { ArrowDown, ArrowUp, ChevronDoubleDown, ChevronDoubleUp } from 'react-bootstrap-icons';
+import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHandlers';
 import { getReferenceModel } from '../../config/references';
 import { useCanvas } from '../../contexts/CanvasContext';
+import { CanvasElement } from '../../types/canvas';
+import { ImageLibrary } from '../library/ImageLibrary';
 
 export const ElementInspector: React.FC = () => {
-  const { elements, selectedId, updateElement, deleteSelected } = useCanvas();
+  const { elements, selectedId, updateElement, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward } = useCanvas();
+  const [showImageLibrary, setShowImageLibrary] = useState(false);
   
   const selectedElement = elements.find(el => el.id === selectedId);
   if (!selectedElement) {
     return (
-      <Card style={{ height: '100%' }}>
+      <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <Card.Header>
           <h6 className="mb-0">Inspector</h6>
         </Card.Header>
@@ -47,11 +52,38 @@ export const ElementInspector: React.FC = () => {
     ? (typeof selectedElement.referenceId === 'number' || typeof selectedElement.referenceId === 'string' ? selectedElement.referenceId : null)
     : null;
   const hasLabel = 'label' in selectedElement;
-  const hasImageUrl = 'imageUrl' in selectedElement;
   const hasOpacity = 'opacity' in selectedElement;
+  
+  const handleImageSelect = (_imageId: number, imageUrl: string) => {
+    if (selectedElement) {
+      // Load the image to get dimensions
+      const img = new window.Image();
+      img.src = imageUrl;
+      img.onload = () => {
+        const maxWidth = 400;
+        const maxHeight = 400;
+        let width = img.width;
+        let height = img.height;
+
+        // Scale down if too large
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = width * ratio;
+          height = height * ratio;
+        }
+
+        updateElement(selectedElement.id, { 
+          imageUrl,
+          width,
+          height
+        } as Partial<CanvasElement>);
+      };
+      setShowImageLibrary(false);
+    }
+  };
 
   return (
-    <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Card.Header>
         <h6 className="mb-0">Inspector</h6>
       </Card.Header>
@@ -72,7 +104,14 @@ export const ElementInspector: React.FC = () => {
 
         <hr />
 
-        {/* Reference Data (read-only) */}
+        {/* Element-specific fields rendered by handler */}
+        {model?.handler.renderInspectorFields(
+          selectedElement as unknown as HandlerCanvasElement,
+          updateElement as (id: string, attrs: Partial<HandlerCanvasElement>) => void,
+          { setShowImageLibrary }
+        )}
+
+        {/* Reference Data (read-only) - shown for reference elements */}
         {hasLabel && 'label' in selectedElement && selectedElement.label ? (
           <div className="mb-3">
             <Form.Label className="fw-bold" style={{ fontSize: '0.9rem' }}>
@@ -85,32 +124,6 @@ export const ElementInspector: React.FC = () => {
               size="sm"
               className="bg-light"
             />
-          </div>
-        ) : null}
-
-        {hasImageUrl && 'imageUrl' in selectedElement && selectedElement.imageUrl ? (
-          <div className="mb-3">
-            <Form.Label className="fw-bold" style={{ fontSize: '0.9rem' }}>
-              Image
-            </Form.Label>
-            <div 
-              style={{
-                border: '1px solid #dee2e6',
-                borderRadius: '4px',
-                padding: '0.5rem',
-                backgroundColor: '#f8f9fa'
-              }}
-            >
-              <img 
-                src={String(selectedElement.imageUrl)}
-                alt="Element"
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '100px',
-                  objectFit: 'contain'
-                }}
-              />
-            </div>
           </div>
         ) : null}
 
@@ -202,6 +215,45 @@ export const ElementInspector: React.FC = () => {
 
         <hr />
 
+        {/* Z-Order Controls */}
+        <div className="mb-3">
+          <Form.Label className="fw-bold" style={{ fontSize: '0.9rem' }}>
+            Layer Order
+          </Form.Label>
+          <ButtonGroup className="w-100 mb-2" size="sm">
+            <Button
+              variant="outline-secondary"
+              onClick={() => bringToFront(selectedElement.id)}
+              title="Bring to Front"
+            >
+              <ChevronDoubleUp size={16} />
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => bringForward(selectedElement.id)}
+              title="Bring Forward"
+            >
+              <ArrowUp size={16} />
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => sendBackward(selectedElement.id)}
+              title="Send Backward"
+            >
+              <ArrowDown size={16} />
+            </Button>
+            <Button
+              variant="outline-secondary"
+              onClick={() => sendToBack(selectedElement.id)}
+              title="Send to Back"
+            >
+              <ChevronDoubleDown size={16} />
+            </Button>
+          </ButtonGroup>
+        </div>
+
+        <hr />
+
         {/* Actions */}
         <div className="d-grid">
           <Button
@@ -213,6 +265,20 @@ export const ElementInspector: React.FC = () => {
           </Button>
         </div>
       </Card.Body>
+
+      {/* Image Library Modal */}
+      <Modal 
+        show={showImageLibrary} 
+        onHide={() => setShowImageLibrary(false)}
+        size="xl"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Select Image</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ImageLibrary onImageSelect={handleImageSelect} selectionMode={true} />
+        </Modal.Body>
+      </Modal>
     </Card>
   );
 };

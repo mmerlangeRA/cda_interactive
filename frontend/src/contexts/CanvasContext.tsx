@@ -1,8 +1,11 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { CanvasElement as HandlerCanvasElement } from '../config/referenceHandlers';
+import { freeImageHandler } from '../config/referenceHandlers/freeImage';
+import { freeTextHandler } from '../config/referenceHandlers/freeText';
 import { getReferenceModel } from '../config/references';
+import { useLanguage } from '../contexts/LanguageContext';
 import { InteractiveElementsAPI } from '../services/api';
-import { CanvasElement, ImageElement, TextElement } from '../types/canvas';
+import { CanvasElement } from '../types/canvas';
 import { InteractiveElementCreateUpdate } from '../types/index';
 
 interface CanvasContextType {
@@ -12,13 +15,19 @@ interface CanvasContextType {
   stageHeight: number;
   saving: boolean;
   loading: boolean;
-  addTextElement: () => void;
+  setCanvasDimensions: (height: number) => void;
+  addFreeTextElement: () => void;
   addImageElement: (src: string) => void;
+  addFreeImageElement: () => void;
   addReferenceElement: (element: HandlerCanvasElement) => void;
   updateElement: (id: string, attrs: Partial<CanvasElement>) => void;
   deleteElement: (id: string) => void;
   selectElement: (id: string | null) => void;
   deleteSelected: () => void;
+  bringToFront: (id: string) => void;
+  sendToBack: (id: string) => void;
+  bringForward: (id: string) => void;
+  sendBackward: (id: string) => void;
   saveElements: (pageId: number, language: string) => Promise<void>;
   loadElements: (pageId: number, language?: string) => Promise<void>;
   clearElements: () => void;
@@ -29,24 +38,30 @@ const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
 export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [elements, setElements] = useState<CanvasElement[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [stageWidth] = useState(1200);
-  const [stageHeight] = useState(800);
+  const [stageWidth, setStageWidth] = useState(1200);
+  const [stageHeight, setStageHeight] = useState(675); // Default 16:9 ratio
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentPageId, setCurrentPageId] = useState<number | null>(null);
+  const { language } = useLanguage();
 
-  const addTextElement = useCallback(() => {
-    const newElement: TextElement = {
-      id: `text-${Date.now()}`,
-      type: 'text',
-      text: 'Double-click to edit',
-      x: 100,
-      y: 100,
-      rotation: 0,
-      fontSize: 24,
-      fontFamily: 'Arial',
-      fill: '#000000',
-    };
-    setElements((prev) => [...prev, newElement]);
+  // Function to set canvas dimensions maintaining 16:9 aspect ratio
+  const setCanvasDimensions = useCallback((height: number) => {
+    const width = Math.round(height * (16 / 9));
+    setStageWidth(width);
+    setStageHeight(height);
+  }, []);
+
+  const addFreeTextElement = useCallback(() => {
+    const newElement = freeTextHandler.createWithPlaceholder({ x: 100, y: 100 });
+    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
+    setSelectedId(newElement.id);
+  }, []);
+
+  const addFreeImageElement = useCallback(() => {
+    // Create a freeImage element with gray placeholder
+    const newElement = freeImageHandler.createWithPlaceholder({ x: 100, y: 100 });
+    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
     setSelectedId(newElement.id);
   }, []);
 
@@ -66,17 +81,15 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         height = height * ratio;
       }
 
-      const newElement: ImageElement = {
-        id: `image-${Date.now()}`,
-        type: 'image',
+      // Use freeImageHandler to create the element
+      const newElement = freeImageHandler.createFromImage(
         src,
-        x: 100,
-        y: 100,
-        rotation: 0,
+        { x: 100, y: 100 },
         width,
-        height,
-      };
-      setElements((prev) => [...prev, newElement]);
+        height
+      );
+      
+      setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
       setSelectedId(newElement.id);
     };
   }, []);
@@ -111,7 +124,49 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [selectedId, deleteElement]);
 
-  const saveElements = useCallback(async (pageId: number, language: string) => {
+  const bringToFront = useCallback((id: string) => {
+    setElements((prev) => {
+      const maxZOrder = Math.max(...prev.map(el => ('z_order' in el ? (el.z_order as number) : 0)));
+      return prev.map(el => 
+        el.id === id ? { ...el, z_order: maxZOrder + 1 } as unknown as CanvasElement : el
+      );
+    });
+  }, []);
+
+  const sendToBack = useCallback((id: string) => {
+    setElements((prev) => {
+      const minZOrder = Math.min(...prev.map(el => ('z_order' in el ? (el.z_order as number) : 0)));
+      return prev.map(el => 
+        el.id === id ? { ...el, z_order: minZOrder - 1 } as unknown as CanvasElement : el
+      );
+    });
+  }, []);
+
+  const bringForward = useCallback((id: string) => {
+    setElements((prev) => {
+      const element = prev.find(el => el.id === id);
+      if (!element) return prev;
+      
+      const currentZOrder = ('z_order' in element ? (element.z_order as number) : 0);
+      return prev.map(el => 
+        el.id === id ? { ...el, z_order: currentZOrder + 1 } as unknown as CanvasElement : el
+      );
+    });
+  }, []);
+
+  const sendBackward = useCallback((id: string) => {
+    setElements((prev) => {
+      const element = prev.find(el => el.id === id);
+      if (!element) return prev;
+      
+      const currentZOrder = ('z_order' in element ? (element.z_order as number) : 0);
+      return prev.map(el => 
+        el.id === id ? { ...el, z_order: currentZOrder - 1 } as unknown as CanvasElement : el
+      );
+    });
+  }, []);
+
+  const saveElements = useCallback(async (pageId: number, lang: string) => {
     try {
       setSaving(true);
       
@@ -127,6 +182,12 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       // Track which business_ids we're keeping
       const keepBusinessIds = new Set<string>();
       
+      // Calculate max z_order for new elements
+      const maxZOrder = existingElements.length > 0 
+        ? Math.max(...existingElements.map(el => el.z_order || 0))
+        : -1;
+      let nextZOrder = maxZOrder + 1;
+      
       // Process each canvas element
       for (const element of elements) {
         keepBusinessIds.add(element.id);
@@ -138,29 +199,23 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           continue;
         }
         
-        // Serialize the element to Konva JSON format
-        const serialized = model.handler.serialize(element as unknown as HandlerCanvasElement);
-        
         // Get existing element to preserve other languages
         const existing = existingMap.get(element.id);
-        const existingDescriptions = existing?.descriptions || {};
-        const existingKonvaJsons = existing?.konva_jsons || {};
         
-        // Update only the current language
-        const descriptions = {
-          ...existingDescriptions,
-          [language]: `${element.type} element`
-        };
-        
-        const konva_jsons = {
-          ...existingKonvaJsons,
-          [language]: serialized
-        };
+        // Use handler's prepareSaveData method - each handler encapsulates its own save logic
+        const { descriptions, konva_jsons } = model.handler.prepareSaveData(
+          element as unknown as HandlerCanvasElement,
+          existing,
+          lang
+        );
         
         const elementData: InteractiveElementCreateUpdate = {
           page: pageId,
           business_id: element.id,
           type: element.type,
+          z_order: ('z_order' in element && typeof (element as any).z_order === 'number') 
+            ? (element as any).z_order 
+            : (existing ? existing.z_order : nextZOrder++),
           descriptions,
           konva_jsons,
         };
@@ -192,9 +247,12 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [elements]);
 
-  const loadElements = useCallback(async (pageId: number, language: string = 'en') => {
+  const loadElements = useCallback(async (pageId: number, lang?: string) => {
     try {
       setLoading(true);
+      setCurrentPageId(pageId);
+      const loadLanguage = lang || language;
+      
       const response = await InteractiveElementsAPI.list({ page: pageId });
       const interactiveElements = response.data || [];
       
@@ -208,15 +266,22 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         
         // Get Konva JSON for the current language
-        const konvaJson = ielement.konva_jsons?.[language] || ielement.konva_jsons?.['en'];
+        const konvaJson = ielement.konva_jsons?.[loadLanguage] || ielement.konva_jsons?.['en'];
         if (!konvaJson) {
-          console.warn(`No Konva JSON found for element ${ielement.business_id} in language ${language}`);
+          console.warn(`No Konva JSON found for element ${ielement.business_id} in language ${loadLanguage}`);
           continue;
         }
         
         // Deserialize using the handler
         const canvasElement = model.handler.deserialize(konvaJson as Record<string, unknown>);
-        canvasElements.push(canvasElement as unknown as CanvasElement);
+        
+        // Add z_order from InteractiveElement (not stored in konvaJson)
+        const elementWithZOrder = {
+          ...canvasElement,
+          z_order: ielement.z_order || 0
+        };
+        
+        canvasElements.push(elementWithZOrder as unknown as CanvasElement);
       }
       
       setElements(canvasElements);
@@ -227,12 +292,20 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   const clearElements = useCallback(() => {
     setElements([]);
     setSelectedId(null);
+    setCurrentPageId(null);
   }, []);
+
+  // Reload elements when language changes
+  useEffect(() => {
+    if (currentPageId) {
+      loadElements(currentPageId, language);
+    }
+  }, [language, currentPageId, loadElements]);
 
   return (
     <CanvasContext.Provider
@@ -243,13 +316,19 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         stageHeight,
         saving,
         loading,
-        addTextElement,
+        setCanvasDimensions,
+        addFreeTextElement,
         addImageElement,
+        addFreeImageElement,
         addReferenceElement,
         updateElement,
         deleteElement,
         selectElement,
         deleteSelected,
+        bringToFront,
+        sendToBack,
+        bringForward,
+        sendBackward,
         saveElements,
         loadElements,
         clearElements,

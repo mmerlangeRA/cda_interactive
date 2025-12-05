@@ -1,5 +1,5 @@
-import { Icon, Rulers, Screwdriver } from 'react-bootstrap-icons';
-import { gabaritHandler, ReferenceElementHandler, screwHandler } from './referenceHandlers';
+import { Icon, Image, Rulers, Screwdriver, TypeBold } from 'react-bootstrap-icons';
+import { freeImageHandler, freeTextHandler, gabaritHandler, ReferenceElementHandler, screwHandler } from './referenceHandlers';
 
 export type FieldType = 'string' | 'int' | 'float' | 'image';
 
@@ -57,6 +57,57 @@ export const REFERENCE_TYPES: ReferenceModel[] = [
         label: 'Reference',
         type: 'string',
         required: true,
+        needs_translation: false,
+      },
+    ],
+  },
+  {
+    type: 'freeImage',
+    label: 'Free Image',
+    icon: Image,
+    handler: freeImageHandler,
+    fields: [
+      {
+        name: 'image',
+        label: 'Image',
+        type: 'image',
+        required: true,
+        needs_translation: false,
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'string',
+        required: false,
+        needs_translation: true,
+      },
+    ],
+  },
+  {
+    type: 'freeText',
+    label: 'Free Text',
+    icon: TypeBold,
+    handler: freeTextHandler,
+    fields: [
+      {
+        name: 'text',
+        label: 'Text',
+        type: 'string',
+        required: true,
+        needs_translation: true,
+      },
+      {
+        name: 'fontSize',
+        label: 'Font Size',
+        type: 'int',
+        required: false,
+        needs_translation: false,
+      },
+      {
+        name: 'fill',
+        label: 'Text Color',
+        type: 'string',
+        required: false,
         needs_translation: false,
       },
     ],

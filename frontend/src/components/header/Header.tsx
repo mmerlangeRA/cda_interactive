@@ -27,7 +27,9 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
       style={{
         minHeight: isCollapsed ? '40px' : '60px',
         transition: 'min-height 0.3s ease',
-        overflow: 'hidden'
+        overflow: 'visible',
+        position: 'relative',
+        zIndex: 1000
       }}
     >
       {!isCollapsed ? (

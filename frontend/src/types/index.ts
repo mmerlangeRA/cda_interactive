@@ -36,6 +36,7 @@ export interface InteractiveElement {
   sheet_name?: string;
   business_id: string;
   type: string;
+  z_order: number;
   descriptions: Record<string, string>; // {"en": "desc", "fr": "desc"}
   konva_jsons: Record<string, object>; // {"en": {...}, "fr": {...}}
   reference_value?: number | null;
@@ -62,6 +63,7 @@ export interface InteractiveElementCreateUpdate {
   page: number;
   business_id: string;
   type: string;
+  z_order?: number;
   descriptions: Record<string, string>;
   konva_jsons: Record<string, object>;
   reference_value?: number | null;

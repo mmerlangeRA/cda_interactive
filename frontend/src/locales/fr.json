@@ -68,7 +68,12 @@
     "toolbar": {
       "addText": "Ajouter du texte",
       "addImage": "Ajouter une image",
-      "deleteSelected": "Supprimer la sélection"
+      "addFreeImage": "Ajouter une image",
+      "deleteSelected": "Supprimer"
+    },
+    "inspector": {
+      "changeImage": "Changer l'image",
+      "description": "Description"
     }
   },
   "mode": {

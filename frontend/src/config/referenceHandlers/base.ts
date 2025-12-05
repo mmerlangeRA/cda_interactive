@@ -113,4 +113,50 @@ export abstract class ReferenceElementHandler {
   protected generateId(): string {
     return `${this.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
+  
+  /**
+   * Prepare save data for this element
+   * Encapsulates the logic for creating descriptions and konva_jsons
+   * Override this method for element types with special save behavior (e.g., multilingual)
+   */
+  prepareSaveData(
+    element: CanvasElement,
+    existing: { descriptions?: Record<string, string>; konva_jsons?: Record<string, object> } | undefined,
+    currentLang: string
+  ): { descriptions: Record<string, string>; konva_jsons: Record<string, object> } {
+    // Default implementation: single-language save
+    const serialized = this.serialize(element);
+    
+    return {
+      descriptions: {
+        ...(existing?.descriptions || {}),
+        [currentLang]: `${this.type} element`
+      },
+      konva_jsons: {
+        ...(existing?.konva_jsons || {}),
+        [currentLang]: serialized
+      }
+    };
+  }
+  
+  /**
+   * Render element-specific inspector fields
+   * Override this method to provide custom UI for editing element properties
+   * @param element - The canvas element to inspect
+   * @param updateElement - Function to update element properties
+   * @param context - Optional context with utilities (e.g., showImageLibrary modal)
+   * @returns React node with element-specific form fields, or null if no custom fields
+   */
+  renderInspectorFields(
+    element: CanvasElement,
+    updateElement: (id: string, attrs: Partial<CanvasElement>) => void,
+    context?: Record<string, unknown>
+  ): React.ReactNode {
+    // Default implementation: no custom fields
+    // Subclasses can override to provide element-specific UI
+    void element;
+    void updateElement;
+    void context;
+    return null;
+  }
 }

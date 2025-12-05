@@ -51,7 +51,7 @@ export const ReferencePanel: React.FC<ReferencePanelProps> = ({ onSpawnReference
   };
 
   return (
-    <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <Card.Header>
         <h6 className="mb-0">Reference Library</h6>
       </Card.Header>

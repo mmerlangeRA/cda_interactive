@@ -55,12 +55,17 @@ export const CanvasEditor: React.FC = () => {
         style={{ backgroundColor: 'white' }}
       >
         <Layer>
-          {elements.map((element) => {
+          {[...elements].sort((a, b) => {
+            // Sort by z_order (lower numbers render first/behind)
+            const aZOrder = ('z_order' in a ? (a.z_order as number) : 0);
+            const bZOrder = ('z_order' in b ? (b.z_order as number) : 0);
+            return aZOrder - bZOrder;
+          }).map((element) => {
             const isSelected = element.id === selectedId;
             const elementType = (element as {type: string}).type;
             
             // Render based on element type
-            if (elementType === 'text') {
+            if (elementType === 'freeText') {
               return (
                 <TextElement
                   key={element.id}
@@ -68,11 +73,22 @@ export const CanvasEditor: React.FC = () => {
                   isSelected={isSelected}
                 />
               );
-            } else if (elementType === 'image') {
+            } else if (elementType === 'image' || elementType === 'freeImage') {
+              // Both old 'image' and new 'freeImage' use ImageElement component
+              // freeImage stores URL in 'imageUrl', old image uses 'src'
+              const imageElement = element as unknown as HandlerCanvasElement;
+              const imageUrl = (imageElement.imageUrl as string | undefined) || '';
+              const srcUrl = (element as ImageElementType).src || '';
+              
+              const imageElementForDisplay = {
+                ...element,
+                src: imageUrl || srcUrl,
+              } as ImageElementType;
+              
               return (
                 <ImageElement
                   key={element.id}
-                  element={element as ImageElementType}
+                  element={imageElementForDisplay}
                   isSelected={isSelected}
                 />
               );

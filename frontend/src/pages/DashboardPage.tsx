@@ -1,24 +1,25 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
 import { ElementInspector } from '../components/canvas/ElementInspector';
-import { ReferencePanel } from '../components/canvas/ReferencePanel';
 import { ModeToggle } from '../components/pageView/ModeToggle';
 import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
 import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
 import { SheetSidebar } from '../components/sheets/SheetSidebar';
-import { Toolbar } from '../components/toolbar/Toolbar';
+import { CompactToolbar } from '../components/toolbar/CompactToolbar';
 import { getReferenceModel } from '../config/references';
 import { CanvasProvider, useCanvas } from '../contexts/CanvasContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { LibraryProvider } from '../contexts/LibraryContext';
 import { ReferenceProvider, useReference } from '../contexts/ReferenceContext';
 import { useSheet } from '../contexts/SheetContext';
 import { ReferenceValue } from '../types/reference';
 
 const EditorLayout: React.FC = () => {
-  const { addReferenceElement, loadElements, clearElements } = useCanvas();
+  const { addReferenceElement, loadElements, clearElements, setCanvasDimensions } = useCanvas();
   const { fetchReferences } = useReference();
   const { selectedPage } = useSheet();
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch references when component mounts
   React.useEffect(() => {
@@ -28,11 +29,27 @@ const EditorLayout: React.FC = () => {
   // Load elements when page changes
   React.useEffect(() => {
     if (selectedPage) {
-      loadElements(selectedPage.id, 'en'); // TODO: Use current language from context
+      loadElements(selectedPage.id); // Uses current language from LanguageContext
     } else {
       clearElements();
     }
   }, [selectedPage, loadElements, clearElements]);
+
+  // Calculate and set canvas dimensions based on available height (16:9 ratio)
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (containerRef.current) {
+        const containerHeight = containerRef.current.clientHeight;
+        const availableHeight = containerHeight - 32; // Account for padding
+        const maxHeight = Math.min(availableHeight, 800); // Max height of 800px
+        setCanvasDimensions(maxHeight);
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, [setCanvasDimensions]);
 
   const handleSpawnReference = (reference: ReferenceValue) => {
     // Get the handler for this reference type
@@ -48,21 +65,19 @@ const EditorLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-100 d-flex flex-column">
-      <Toolbar />
-      <div className="flex-grow-1 d-flex overflow-hidden">
-        {/* Left Panel - Reference Library */}
-        <div style={{ width: '300px', borderRight: '1px solid #dee2e6' }}>
-          <ReferencePanel onSpawnReference={handleSpawnReference} />
-        </div>
-
-        {/* Center - Canvas Editor */}
-        <div className="flex-grow-1 d-flex justify-content-center align-items-center p-4" style={{ backgroundColor: '#f8f9fa' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CompactToolbar onSpawnReference={handleSpawnReference} />
+      <div 
+        ref={containerRef}
+        style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}
+      >
+        {/* Center - Canvas Editor with 16:9 ratio */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', backgroundColor: '#f8f9fa' }}>
           <CanvasEditor />
         </div>
 
         {/* Right Panel - Element Inspector */}
-        <div style={{ width: '300px', borderLeft: '1px solid #dee2e6' }}>
+        <div style={{ width: '300px', borderLeft: '1px solid #dee2e6', display: 'flex', flexDirection: 'column' }}>
           <ElementInspector />
         </div>
       </div>
@@ -98,15 +113,17 @@ const DashboardPage: React.FC = () => {
               {selectedPage && <PageDescriptionBanner />}
 
               {/* Content Area */}
-              <div className="flex-grow-1 overflow-auto">
+              <div className="flex-grow-1" style={{ overflow: 'hidden' }}>
                 {selectedPage ? (
                   isEditMode ? (
                     // Edit Mode - Show Canvas Editor with 3-column layout
-                    <ReferenceProvider>
-                      <CanvasProvider>
-                        <EditorLayout />
-                      </CanvasProvider>
-                    </ReferenceProvider>
+                    <LibraryProvider>
+                      <ReferenceProvider>
+                        <CanvasProvider>
+                          <EditorLayout />
+                        </CanvasProvider>
+                      </ReferenceProvider>
+                    </LibraryProvider>
                   ) : (
                     // View Mode - Show Page Viewer
                     <PageViewer />
