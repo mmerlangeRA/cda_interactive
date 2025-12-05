@@ -75,7 +75,9 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setIsLoading(true);
     try {
       const response = await InteractiveElementsAPI.list({ page: pageId });
-      setPageElements(response.data);
+      // Handle both array and paginated response formats
+      const elementList = response.data;
+      setPageElements(elementList);
     } catch (error) {
       console.error('Failed to load page elements:', error);
       setPageElements([]);
@@ -135,7 +137,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       // Get all existing pages to determine the next page number
       const response = await SheetPagesAPI.list({ sheet: selectedSheet.id });
-      const pageList = response.data.results || [];
+      const pageList = response.data;
       
       // Calculate next page number
       const maxPageNumber = pageList.length > 0 
@@ -186,7 +188,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (selectedPage?.id === pageId) {
         // Try to select the first available page
         const response = await SheetPagesAPI.list({ sheet: selectedSheet.id });
-        const pageList = response.data.results || [];
+        const pageList = response.data;
         if (pageList.length > 0) {
           selectPage(pageList[0]);
         } else {
@@ -197,7 +199,7 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.error('Failed to delete page:', error);
       throw error;
     }
-  }, [selectedSheet, selectedPage, refreshPages, selectPage]);
+  }, [selectedSheet]);
 
   const savePageElements = useCallback(async (pageId: number, elements: InteractiveElement[]) => {
     // This is a simplified save - in a real app you'd need to handle create/update/delete

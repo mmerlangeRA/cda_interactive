@@ -63,7 +63,7 @@ export const RectangleElement: React.FC<RectangleElementProps> = ({ element, isS
         cornerRadius={element.cornerRadius as number || 0}
         rotation={element.rotation}
         opacity={element.opacity}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}

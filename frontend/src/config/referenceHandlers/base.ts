@@ -122,6 +122,18 @@ export abstract class ReferenceElementHandler {
   }
   
   /**
+   * Calculate the z_order for a newly spawned element
+   * Ensures new elements appear on top of existing ones
+   */
+  protected calculateInitialZOrder(existingElements: CanvasElement[]): number {
+    if (existingElements.length === 0) return 0;
+    const maxZOrder = Math.max(...existingElements.map(el => 
+      ('z_order' in el ? (el.z_order as number) : 0)
+    ));
+    return maxZOrder + 1;
+  }
+  
+  /**
    * Prepare save data for this element
    * Encapsulates the logic for creating descriptions and konva_jsons
    * Override this method for element types with special save behavior (e.g., multilingual)

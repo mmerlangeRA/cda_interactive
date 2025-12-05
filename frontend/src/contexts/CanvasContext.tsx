@@ -48,6 +48,24 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentPageId, setCurrentPageId] = useState<number | null>(null);
   const { language } = useLanguage();
 
+  // Helper function to calculate z_order for new elements
+  const getNextZOrder = useCallback((currentElements: CanvasElement[]): number => {
+    if (currentElements.length === 0) return 0;
+    const maxZOrder = Math.max(...currentElements.map(el => 
+      ('z_order' in el ? (el.z_order as number) : 0)
+    ));
+    return maxZOrder + 1;
+  }, []);
+
+  // Helper function to add element with z_order and selection
+  const addElementToCanvas = useCallback((element: HandlerCanvasElement) => {
+    setElements((prev) => {
+      const elementWithZOrder = { ...element, z_order: getNextZOrder(prev) } as unknown as CanvasElement;
+      return [...prev, elementWithZOrder];
+    });
+    setSelectedId(element.id);
+  }, [getNextZOrder]);
+
   // Function to set canvas dimensions maintaining 16:9 aspect ratio
   const setCanvasDimensions = useCallback((height: number) => {
     const width = Math.round(height * (16 / 9));
@@ -57,40 +75,34 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const addFreeTextElement = useCallback(() => {
     const newElement = freeTextHandler.createWithPlaceholder({ x: 100, y: 100 });
-    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-    setSelectedId(newElement.id);
-  }, []);
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
 
   const addFreeImageElement = useCallback(() => {
-    // Create a freeImage element with gray placeholder
     const newElement = freeImageHandler.createWithPlaceholder({ x: 100, y: 100 });
-    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-    setSelectedId(newElement.id);
-  }, []);
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
 
   const addCircleElement = useCallback(() => {
     const model = getReferenceModel('circle');
     if (!model || !model.handler.createWithDefaults) return;
-    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
-    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-    setSelectedId(newElement.id);
-  }, []);
+    const newElement = model.handler.createWithDefaults!({ x: 100, y: 100 });
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
 
   const addRectangleElement = useCallback(() => {
     const model = getReferenceModel('rectangle');
     if (!model || !model.handler.createWithDefaults) return;
-    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
-    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-    setSelectedId(newElement.id);
-  }, []);
+    const newElement = model.handler.createWithDefaults!({ x: 100, y: 100 });
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
 
   const addArrowElement = useCallback(() => {
     const model = getReferenceModel('arrow');
     if (!model || !model.handler.createWithDefaults) return;
-    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
-    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-    setSelectedId(newElement.id);
-  }, []);
+    const newElement = model.handler.createWithDefaults!({ x: 100, y: 100 });
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
 
   const addImageElement = useCallback((src: string) => {
     const img = new Image();
@@ -116,17 +128,13 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         height
       );
       
-      setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
-      setSelectedId(newElement.id);
+      addElementToCanvas(newElement);
     };
-  }, []);
+  }, [addElementToCanvas]);
 
   const addReferenceElement = useCallback((element: HandlerCanvasElement) => {
-    // Add reference element from handler - it's already a complete CanvasElement
-    // Use 'unknown' as intermediate type for safe conversion
-    setElements((prev) => [...prev, element as unknown as CanvasElement]);
-    setSelectedId(element.id);
-  }, []);
+    addElementToCanvas(element);
+  }, [addElementToCanvas]);
 
   const updateElement = useCallback((id: string, attrs: Partial<CanvasElement>) => {
     setElements((prev) =>

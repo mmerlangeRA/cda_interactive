@@ -63,7 +63,7 @@ export const GabaritElement: React.FC<GabaritElementProps> = ({ element, isSelec
         width={element.width}
         height={element.height}
         rotation={element.rotation}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}

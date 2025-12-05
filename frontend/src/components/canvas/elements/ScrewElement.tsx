@@ -78,7 +78,7 @@ export const ScrewElement: React.FC<ScrewElementProps> = ({ element, isSelected 
         height={element.height}
         rotation={element.rotation}
         opacity={element.opacity}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}

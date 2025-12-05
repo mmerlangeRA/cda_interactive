@@ -65,7 +65,7 @@ export const CircleElement: React.FC<CircleElementProps> = ({ element, isSelecte
         stroke={element.stroke as string || '#000000'}
         strokeWidth={element.strokeWidth as number || 2}
         opacity={element.opacity}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}

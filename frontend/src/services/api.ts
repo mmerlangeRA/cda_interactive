@@ -173,7 +173,7 @@ export const SheetPagesAPI = {
     if (params?.language) queryParams.append('language', params.language);
     if (params?.search) queryParams.append('search', params.search);
     const query = queryParams.toString();
-    return api.get<{ results: SheetPage[]; count: number }>(`/pages/${query ? `?${query}` : ''}`);
+    return api.get<SheetPage[]>(`/pages/${query ? `?${query}` : ''}`);
   },
   get: (id: number) => api.get<SheetPage>(`/pages/${id}/`),
   create: async (data: SheetPageCreateUpdate) => {

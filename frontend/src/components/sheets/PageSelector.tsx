@@ -27,7 +27,7 @@ export const PageSelector: React.FC = () => {
     try {
       const response = await SheetPagesAPI.list({ sheet: selectedSheet.id });
       // Handle both array and paginated response formats
-      const pageList = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      const pageList = response.data;
       setPages(pageList);
       // Auto-select first page if available
       if (pageList.length > 0 && !selectedPage) {

@@ -72,7 +72,7 @@ export const ImageElement: React.FC<ImageElementProps> = ({ element, isSelected 
         width={element.width}
         height={element.height}
         rotation={element.rotation}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}

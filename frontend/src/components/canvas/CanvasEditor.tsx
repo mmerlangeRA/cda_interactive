@@ -12,7 +12,11 @@ import { ScrewElement } from './elements/ScrewElement';
 import { ImageElement } from './ImageElement';
 import { TextElement } from './TextElement';
 
-export const CanvasEditor: React.FC = () => {
+interface CanvasEditorProps {
+  readOnly?: boolean;
+}
+
+export const CanvasEditor: React.FC<CanvasEditorProps> = ({ readOnly = false }) => {
   const {
     elements,
     selectedId,
@@ -24,6 +28,8 @@ export const CanvasEditor: React.FC = () => {
   const stageRef = useRef(null);
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
+    if (readOnly) return; // Disable selection in read-only mode
+    
     // Deselect when clicking on empty area
     const clickedOnEmpty = e.target === e.target.getStage();
     if (clickedOnEmpty) {
@@ -32,6 +38,8 @@ export const CanvasEditor: React.FC = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (readOnly) return; // Disable deletion in read-only mode
+    
     if (e.key === 'Delete' || e.key === 'Backspace') {
       deleteSelected();
     }
@@ -64,7 +72,7 @@ export const CanvasEditor: React.FC = () => {
             const bZOrder = ('z_order' in b ? (b.z_order as number) : 0);
             return aZOrder - bZOrder;
           }).map((element) => {
-            const isSelected = element.id === selectedId;
+            const isSelected = readOnly ? false : element.id === selectedId;
             const elementType = (element as {type: string}).type;
             
             // Render based on element type

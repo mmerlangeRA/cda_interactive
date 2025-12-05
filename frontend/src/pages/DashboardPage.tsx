@@ -2,8 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { CanvasEditor } from '../components/canvas/CanvasEditor';
 import { ElementInspector } from '../components/canvas/ElementInspector';
 import { ModeToggle } from '../components/pageView/ModeToggle';
-import { PageDescriptionBanner } from '../components/pageView/PageDescriptionBanner';
-import { PageViewer } from '../components/pageView/PageViewer';
 import { PageSelector } from '../components/sheets/PageSelector';
 import { SheetSidebar } from '../components/sheets/SheetSidebar';
 import { CompactToolbar } from '../components/toolbar/CompactToolbar';
@@ -85,6 +83,46 @@ const EditorLayout: React.FC = () => {
   );
 };
 
+const ViewerLayout: React.FC = () => {
+  const { loadElements, clearElements, setCanvasDimensions } = useCanvas();
+  const { selectedPage } = useSheet();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Load elements when page changes
+  React.useEffect(() => {
+    if (selectedPage) {
+      loadElements(selectedPage.id);
+    } else {
+      clearElements();
+    }
+  }, [selectedPage, loadElements, clearElements]);
+
+  // Calculate and set canvas dimensions based on available height (16:9 ratio)
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      if (containerRef.current) {
+        const containerHeight = containerRef.current.clientHeight;
+        const availableHeight = containerHeight - 32; // Account for padding
+        const maxHeight = Math.min(availableHeight, 800); // Max height of 800px
+        setCanvasDimensions(maxHeight);
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, [setCanvasDimensions]);
+
+  return (
+    <div 
+      ref={containerRef}
+      style={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '1rem', backgroundColor: '#f8f9fa' }}
+    >
+      <CanvasEditor readOnly={true} />
+    </div>
+  );
+};
+
 const DashboardPage: React.FC = () => {
   const { t } = useLanguage();
   const { selectedSheet, selectedPage, isEditMode } = useSheet();
@@ -109,8 +147,9 @@ const DashboardPage: React.FC = () => {
                 <ModeToggle />
               </div>
 
-              {/* Page Description Banner */}
+              {/* Page Description Banner 
               {selectedPage && <PageDescriptionBanner />}
+              */}
 
               {/* Content Area */}
               <div className="flex-grow-1" style={{ overflow: 'hidden' }}>
@@ -125,8 +164,10 @@ const DashboardPage: React.FC = () => {
                       </ReferenceProvider>
                     </LibraryProvider>
                   ) : (
-                    // View Mode - Show Page Viewer
-                    <PageViewer />
+                    // View Mode - Show read-only Canvas Editor
+                    <CanvasProvider>
+                      <ViewerLayout />
+                    </CanvasProvider>
                   )
                 ) : (
                   <div className="d-flex align-items-center justify-content-center h-100">

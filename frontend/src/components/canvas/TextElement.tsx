@@ -67,7 +67,7 @@ export const TextElement: React.FC<TextElementProps> = ({ element, isSelected })
       <Text
         ref={textRef}
         {...element}
-        draggable
+        draggable={isSelected}
         onClick={() => selectElement(element.id)}
         onTap={() => selectElement(element.id)}
         onDragEnd={handleDragEnd}
