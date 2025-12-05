@@ -16,9 +16,19 @@ from ..permissions import IsAdminUser
 class ReferenceValueViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing reference values.
-    Admin-only access for all operations.
+    Read access for authenticated users, write access for admins only.
     """
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    
+    def get_permissions(self):
+        """
+        Allow authenticated users to read (list, retrieve, history, types),
+        but only admins can write (create, update, delete).
+        """
+        if self.action in ['list', 'retrieve', 'history', 'types']:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticated, IsAdminUser]
+        return [permission() for permission in permission_classes]
     
     def get_serializer_class(self):
         if self.action == 'list':

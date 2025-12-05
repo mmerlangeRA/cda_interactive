@@ -234,75 +234,119 @@ class InteractiveElement(models.Model):
         return f"{self.type} - {self.business_id}"
 
 
-class ImageTag(models.Model):
-    """Tags for organizing images in the library"""
+class MediaTag(models.Model):
+    """Tags for organizing media in the library"""
     name = models.CharField(max_length=50, unique=True, help_text="Tag name")
     created_at = models.DateTimeField(auto_now_add=True, help_text="When the tag was created")
     
     class Meta:
-        db_table = 'image_tag'
-        verbose_name = 'Image Tag'
-        verbose_name_plural = 'Image Tags'
+        db_table = 'media_tag'
+        verbose_name = 'Media Tag'
+        verbose_name_plural = 'Media Tags'
         ordering = ['name']
     
     def __str__(self):
         return self.name
 
 
-class ImageLibrary(models.Model):
-    """Centralized image storage with tagging and language support"""
+# Keep ImageTag as alias for backward compatibility
+ImageTag = MediaTag
+
+
+class MediaLibrary(models.Model):
+    """Centralized media storage (images, videos) with tagging and language support"""
+    MEDIA_TYPE_CHOICES = [
+        ('image', 'Image'),
+        ('video', 'Video'),
+    ]
+    
     LANGUAGE_CHOICES = [
         ('en', 'English'),
         ('fr', 'French'),
     ]
     
-    name = models.CharField(max_length=255, help_text="Image name")
-    description = models.TextField(blank=True, help_text="Image description")
-    image = models.ImageField(upload_to='library_images/%Y/%m/%d/', help_text="Upload an image file")
-    tags = models.ManyToManyField(ImageTag, blank=True, related_name='images', help_text="Tags for organizing images")
+    name = models.CharField(max_length=255, help_text="Media name")
+    description = models.TextField(blank=True, help_text="Media description")
+    media_type = models.CharField(
+        max_length=20,
+        choices=MEDIA_TYPE_CHOICES,
+        default='image',
+        help_text="Type of media file"
+    )
+    
+    # Main file field
+    file = models.FileField(upload_to='library_media/%Y/%m/%d/', help_text="Upload a media file")
+    
+    # Thumbnail for videos (auto-generated for images)
+    thumbnail = models.ImageField(
+        upload_to='library_thumbnails/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        help_text="Thumbnail image"
+    )
+    
+    tags = models.ManyToManyField(MediaTag, blank=True, related_name='media_items', help_text="Tags for organizing media")
     language = models.CharField(
         max_length=2,
         choices=LANGUAGE_CHOICES,
         blank=True,
         null=True,
-        help_text="Language for this image (optional)"
+        help_text="Language for this media (optional)"
     )
     
-    # Image dimensions
-    width = models.IntegerField(null=True, blank=True, help_text="Image width in pixels")
-    height = models.IntegerField(null=True, blank=True, help_text="Image height in pixels")
+    # Media dimensions
+    width = models.IntegerField(null=True, blank=True, help_text="Media width in pixels")
+    height = models.IntegerField(null=True, blank=True, help_text="Media height in pixels")
+    file_size = models.BigIntegerField(null=True, blank=True, help_text="File size in bytes")
+    
+    # Video-specific metadata
+    duration = models.FloatField(null=True, blank=True, help_text="Video duration in seconds (NULL for images)")
     
     # Tracking fields
-    created_at = models.DateTimeField(auto_now_add=True, help_text="When the image was uploaded")
-    updated_at = models.DateTimeField(auto_now=True, help_text="When the image was last updated")
+    created_at = models.DateTimeField(auto_now_add=True, help_text="When the media was uploaded")
+    updated_at = models.DateTimeField(auto_now=True, help_text="When the media was last updated")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='uploaded_images',
-        help_text="User who uploaded this image"
+        related_name='uploaded_media',
+        help_text="User who uploaded this media"
     )
     
     class Meta:
-        db_table = 'image_library'
-        verbose_name = 'Image Library'
-        verbose_name_plural = 'Image Library'
+        db_table = 'media_library'
+        verbose_name = 'Media Library'
+        verbose_name_plural = 'Media Library'
         ordering = ['-created_at']
     
     def save(self, *args, **kwargs):
-        # Auto-detect image dimensions if not set
-        if self.image and not self.width and not self.height:
+        # Auto-detect dimensions and metadata
+        if self.file and self.media_type == 'image' and not self.width and not self.height:
             try:
                 from PIL import Image
-                img = Image.open(self.image)
+                img = Image.open(self.file)
                 self.width, self.height = img.size
+                # Create thumbnail from image
+                if not self.thumbnail:
+                    self.thumbnail = self.file
+            except Exception:
+                pass
+        
+        # Get file size
+        if self.file and not self.file_size:
+            try:
+                self.file_size = self.file.size
             except Exception:
                 pass
         
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.name} ({self.language or 'no language'})"
+        return f"{self.name} ({self.media_type} - {self.language or 'no language'})"
+
+
+# Keep ImageLibrary as alias for backward compatibility during migration
+ImageLibrary = MediaLibrary
 
 
 class ImageElement(InteractiveElement):

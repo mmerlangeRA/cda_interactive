@@ -7,7 +7,7 @@ export class ScrewElementHandler extends ReferenceElementHandler {
   spawn(reference: ReferenceValue, position: SpawnPosition): CanvasElement {
     // Extract image URL from reference fields
     const imageField = reference.fields.find(f => f.name === 'image' && f.type === 'image');
-    const imageUrl = imageField?.image?.image_url || '';
+    const imageUrl = imageField?.image?.file_url || '';
     
     // Extract label from reference fields
     const labelField = reference.fields.find(f => f.name === 'reference');

@@ -68,7 +68,7 @@ export const TagManager: React.FC = () => {
                 className="badge bg-secondary d-flex align-items-center gap-2"
                 style={{ fontSize: '0.9rem', padding: '0.5rem' }}
               >
-                <span>{tag.name} ({tag.images_count})</span>
+                <span>{tag.name} ({tag.media_count})</span>
                 <button
                   className="btn btn-sm btn-link text-white p-0 border-0"
                   style={{ textDecoration: 'none' }}

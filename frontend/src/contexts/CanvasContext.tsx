@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { CanvasElement as HandlerCanvasElement } from '../config/referenceHandlers';
 import { freeImageHandler } from '../config/referenceHandlers/freeImage';
 import { freeTextHandler } from '../config/referenceHandlers/freeText';
+import { freeVideoHandler } from '../config/referenceHandlers/freeVideo';
 import { getReferenceModel } from '../config/references';
 import { useLanguage } from '../contexts/LanguageContext';
 import { InteractiveElementsAPI } from '../services/api';
@@ -19,6 +20,8 @@ interface CanvasContextType {
   addFreeTextElement: () => void;
   addImageElement: (src: string) => void;
   addFreeImageElement: () => void;
+  addFreeVideoElement: () => void;
+  addVideoElement: (src: string) => void;
   addCircleElement: () => void;
   addRectangleElement: () => void;
   addArrowElement: () => void;
@@ -80,6 +83,26 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const addFreeImageElement = useCallback(() => {
     const newElement = freeImageHandler.createWithPlaceholder({ x: 100, y: 100 });
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
+
+  const addFreeVideoElement = useCallback(() => {
+    const newElement = freeVideoHandler.createWithPlaceholder({ x: 100, y: 100 });
+    addElementToCanvas(newElement);
+  }, [addElementToCanvas]);
+
+  const addVideoElement = useCallback((src: string) => {
+    // Default video dimensions (16:9 ratio)
+    const width = 320;
+    const height = 180;
+
+    const newElement = freeVideoHandler.createFromVideo(
+      src,
+      { x: 100, y: 100 },
+      width,
+      height
+    );
+    
     addElementToCanvas(newElement);
   }, [addElementToCanvas]);
 
@@ -355,6 +378,8 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addFreeTextElement,
         addImageElement,
         addFreeImageElement,
+        addFreeVideoElement,
+        addVideoElement,
         addCircleElement,
         addRectangleElement,
         addArrowElement,

@@ -178,4 +178,12 @@ export abstract class ReferenceElementHandler {
     void context;
     return null;
   }
+  
+  /**
+   * Handle click event on element in read-only mode
+   * Override this method to provide custom click behavior for specific element types
+   * @param element - The canvas element that was clicked
+   * @param context - Optional context with utilities (e.g., modal control functions)
+   */
+  handleClick?(element: CanvasElement, context?: Record<string, unknown>): void;
 }

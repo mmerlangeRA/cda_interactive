@@ -15,7 +15,9 @@ from .models import (
     ImageElement,
     ReferenceValue,
     FieldDefinitionValue,
-    ReferenceHistory
+    ReferenceHistory,
+    MediaTag,
+    MediaLibrary
 )
 
 
@@ -82,6 +84,111 @@ class SheetAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at', 'updated_at', 'created_by']
     date_hierarchy = 'created_at'
     ordering = ['-created_at']
+    
+    def save_model(self, request, obj, form, change):
+        if not change:  # Only set created_by on creation
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(MediaTag)
+class MediaTagAdmin(admin.ModelAdmin):
+    list_display = ['name', 'get_media_count', 'created_at']
+    search_fields = ['name']
+    readonly_fields = ['created_at']
+    ordering = ['name']
+    
+    def get_media_count(self, obj):
+        return obj.media_items.count()
+    get_media_count.short_description = 'Media Count'
+
+
+@admin.register(MediaLibrary)
+class MediaLibraryAdmin(admin.ModelAdmin):
+    list_display = ['name', 'media_type', 'thumbnail_preview', 'language', 'get_tags_display', 'file_size_display', 'created_by', 'created_at']
+    list_filter = ['media_type', 'language', 'tags', 'created_at', 'created_by']
+    search_fields = ['name', 'description']
+    readonly_fields = ['thumbnail_display', 'width', 'height', 'file_size', 'duration', 'created_at', 'updated_at', 'created_by']
+    filter_horizontal = ['tags']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+    
+    fieldsets = (
+        ('Media Information', {
+            'fields': ('name', 'description', 'media_type')
+        }),
+        ('Files', {
+            'fields': ('file', 'thumbnail', 'thumbnail_display')
+        }),
+        ('Classification', {
+            'fields': ('tags', 'language')
+        }),
+        ('Metadata', {
+            'fields': ('width', 'height', 'file_size', 'duration'),
+            'classes': ('collapse',)
+        }),
+        ('Tracking', {
+            'fields': ('created_at', 'updated_at', 'created_by'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def thumbnail_preview(self, obj):
+        """Small thumbnail for list view (50x50px)"""
+        if obj.media_type == 'image' and obj.file:
+            return format_html(
+                '<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />',
+                obj.file.url
+            )
+        elif obj.media_type == 'video' and obj.thumbnail:
+            return format_html(
+                '<img src="{}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" /><br><small>▶ Video</small>',
+                obj.thumbnail.url
+            )
+        elif obj.media_type == 'video':
+            return format_html('<small>▶ Video (no thumbnail)</small>')
+        return "No media"
+    thumbnail_preview.short_description = 'Preview'
+    
+    def thumbnail_display(self, obj):
+        """Large preview for detail view (up to 400x400px)"""
+        if obj.media_type == 'image' and obj.file:
+            return format_html(
+                '<img src="{}" style="max-width: 400px; max-height: 400px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;" /><br><small>{}x{} px</small>',
+                obj.file.url,
+                obj.width or '?',
+                obj.height or '?'
+            )
+        elif obj.media_type == 'video' and obj.thumbnail:
+            return format_html(
+                '<img src="{}" style="max-width: 400px; max-height: 400px; border: 1px solid #ddd; border-radius: 4px; padding: 5px;" /><br><small>▶ Video Thumbnail ({}s)</small>',
+                obj.thumbnail.url,
+                obj.duration or '?'
+            )
+        elif obj.media_type == 'video':
+            return format_html('<small>▶ Video file uploaded (no thumbnail)</small>')
+        return "No media uploaded yet"
+    thumbnail_display.short_description = 'Media Preview'
+    
+    def get_tags_display(self, obj):
+        """Display tags as comma-separated list"""
+        tags = obj.tags.all()
+        if tags:
+            return ', '.join([tag.name for tag in tags])
+        return '-'
+    get_tags_display.short_description = 'Tags'
+    
+    def file_size_display(self, obj):
+        """Display file size in human-readable format"""
+        if obj.file_size:
+            size = obj.file_size
+            for unit in ['B', 'KB', 'MB', 'GB']:
+                if size < 1024.0:
+                    return f"{size:.1f} {unit}"
+                size /= 1024.0
+            return f"{size:.1f} TB"
+        return '-'
+    file_size_display.short_description = 'File Size'
     
     def save_model(self, request, obj, form, change):
         if not change:  # Only set created_by on creation

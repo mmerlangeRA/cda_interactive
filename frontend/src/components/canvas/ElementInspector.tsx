@@ -5,11 +5,12 @@ import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHan
 import { getReferenceModel } from '../../config/references';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { CanvasElement } from '../../types/canvas';
-import { ImageLibrary } from '../library/ImageLibrary';
+import { MediaLibrary } from '../library/MediaLibrary';
 
 export const ElementInspector: React.FC = () => {
   const { elements, selectedId, updateElement, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward } = useCanvas();
   const [showImageLibrary, setShowImageLibrary] = useState(false);
+  const [showCoverImageLibrary, setShowCoverImageLibrary] = useState(false);
   
   const selectedElement = elements.find(el => el.id === selectedId);
   if (!selectedElement) {
@@ -54,31 +55,47 @@ export const ElementInspector: React.FC = () => {
   const hasLabel = 'label' in selectedElement;
   const hasOpacity = 'opacity' in selectedElement;
   
-  const handleImageSelect = (_imageId: number, imageUrl: string) => {
+  const handleImageSelect = (_mediaId: number, mediaUrl: string) => {
     if (selectedElement) {
-      // Load the image to get dimensions
-      const img = new window.Image();
-      img.src = imageUrl;
-      img.onload = () => {
-        const maxWidth = 400;
-        const maxHeight = 400;
-        let width = img.width;
-        let height = img.height;
-
-        // Scale down if too large
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width = width * ratio;
-          height = height * ratio;
-        }
-
+      // Check if it's a video based on file extension or if element has videoUrl property
+      const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || ('videoUrl' in selectedElement);
+      
+      if (isVideo) {
+        // For videos, use default dimensions (16:9 ratio)
+        const width = 320;
+        const height = 180;
+        
         updateElement(selectedElement.id, { 
-          imageUrl,
+          videoUrl: mediaUrl,
           width,
           height
         } as Partial<CanvasElement>);
-      };
-      setShowImageLibrary(false);
+        setShowImageLibrary(false);
+      } else {
+        // Load the image to get dimensions
+        const img = new window.Image();
+        img.src = mediaUrl;
+        img.onload = () => {
+          const maxWidth = 400;
+          const maxHeight = 400;
+          let width = img.width;
+          let height = img.height;
+
+          // Scale down if too large
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = width * ratio;
+            height = height * ratio;
+          }
+
+          updateElement(selectedElement.id, { 
+            imageUrl: mediaUrl,
+            width,
+            height
+          } as Partial<CanvasElement>);
+        };
+        setShowImageLibrary(false);
+      }
     }
   };
 
@@ -108,7 +125,11 @@ export const ElementInspector: React.FC = () => {
         {model?.handler.renderInspectorFields(
           selectedElement as unknown as HandlerCanvasElement,
           updateElement as (id: string, attrs: Partial<HandlerCanvasElement>) => void,
-          { setShowImageLibrary }
+          { 
+            setShowImageLibrary, 
+            setShowMediaLibrary: setShowImageLibrary,
+            setShowCoverImageLibrary
+          }
         )}
 
         {/* Reference Data (read-only) - shown for reference elements */}
@@ -266,17 +287,44 @@ export const ElementInspector: React.FC = () => {
         </div>
       </Card.Body>
 
-      {/* Image Library Modal */}
+      {/* Media Library Modal */}
       <Modal 
         show={showImageLibrary} 
         onHide={() => setShowImageLibrary(false)}
         size="xl"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Select Image</Modal.Title>
+          <Modal.Title>Select Media</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <ImageLibrary onImageSelect={handleImageSelect} selectionMode={true} />
+          <MediaLibrary onMediaSelect={handleImageSelect} selectionMode={true} />
+        </Modal.Body>
+      </Modal>
+
+      {/* Cover Image Library Modal (Images Only) */}
+      <Modal 
+        show={showCoverImageLibrary} 
+        onHide={() => setShowCoverImageLibrary(false)}
+        size="xl"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Select Cover Image</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <MediaLibrary 
+            onMediaSelect={(_mediaId: number, mediaUrl: string) => {
+              // Only accept images for cover
+              if (!mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
+                updateElement(selectedElement.id, { 
+                  coverImage: mediaUrl
+                } as Partial<CanvasElement>);
+                setShowCoverImageLibrary(false);
+              } else {
+                alert('Please select an image file, not a video.');
+              }
+            }} 
+            selectionMode={true} 
+          />
         </Modal.Body>
       </Modal>
     </Card>

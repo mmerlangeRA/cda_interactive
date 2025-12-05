@@ -1,10 +1,11 @@
 import {
-    ImageLibrary,
-    ImageLibraryFilters,
-    ImageLibraryListItem,
-    ImageLibraryStats,
-    ImageTag,
-    ImageTagCreate,
+  MediaLibrary,
+  MediaLibraryFilters,
+  MediaLibraryListItem,
+  MediaLibraryStats,
+  MediaTag,
+  MediaTagCreate,
+  MediaType,
 } from '../types/library';
 import api from './api';
 
@@ -17,14 +18,14 @@ const getFreshCsrfToken = async () => {
   return token;
 };
 
-export const ImageTagsAPI = {
-  list: () => api.get<ImageTag[]>('/library/tags/'),
+export const MediaTagsAPI = {
+  list: () => api.get<MediaTag[]>('/library/tags/'),
   
-  get: (id: number) => api.get<ImageTag>(`/library/tags/${id}/`),
+  get: (id: number) => api.get<MediaTag>(`/library/tags/${id}/`),
   
-  create: async (data: ImageTagCreate) => {
+  create: async (data: MediaTagCreate) => {
     await getFreshCsrfToken();
-    return api.post<ImageTag>('/library/tags/', data);
+    return api.post<MediaTag>('/library/tags/', data);
   },
   
   delete: async (id: number) => {
@@ -33,8 +34,11 @@ export const ImageTagsAPI = {
   },
 };
 
-export const ImageLibraryAPI = {
-  list: (filters?: ImageLibraryFilters) => {
+// Backward compatibility alias
+export const ImageTagsAPI = MediaTagsAPI;
+
+export const MediaLibraryAPI = {
+  list: (filters?: MediaLibraryFilters) => {
     const params = new URLSearchParams();
     
     if (filters?.search) {
@@ -49,13 +53,25 @@ export const ImageLibraryAPI = {
       params.append('language', filters.language);
     }
     
+    // NEW: Filter by media type
+    if (filters?.media_type) {
+      params.append('media_type', filters.media_type);
+    }
+    
     const query = params.toString();
-    return api.get<ImageLibraryListItem[]>(`/library/images/${query ? `?${query}` : ''}`);
+    return api.get<MediaLibraryListItem[]>(`/library/images/${query ? `?${query}` : ''}`);
   },
   
-  get: (id: number) => api.get<ImageLibrary>(`/library/images/${id}/`),
+  get: (id: number) => api.get<MediaLibrary>(`/library/images/${id}/`),
   
-  create: async (data: { name: string; description?: string; image: File; tag_ids?: number[]; language?: 'en' | 'fr' | null }) => {
+  create: async (data: { 
+    name: string; 
+    description?: string; 
+    file: File; 
+    media_type: MediaType;
+    tag_ids?: number[]; 
+    language?: 'en' | 'fr' | null 
+  }) => {
     await getFreshCsrfToken();
     
     const formData = new FormData();
@@ -63,7 +79,8 @@ export const ImageLibraryAPI = {
     if (data.description) {
       formData.append('description', data.description);
     }
-    formData.append('image', data.image);
+    formData.append('file', data.file);
+    formData.append('media_type', data.media_type);
     if (data.tag_ids && data.tag_ids.length > 0) {
       data.tag_ids.forEach(tagId => {
         formData.append('tag_ids', tagId.toString());
@@ -73,7 +90,7 @@ export const ImageLibraryAPI = {
       formData.append('language', data.language);
     }
     
-    return api.post<ImageLibrary>('/library/images/', formData, {
+    return api.post<MediaLibrary>('/library/images/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -82,7 +99,7 @@ export const ImageLibraryAPI = {
   
   update: async (id: number, data: { name?: string; description?: string; tag_ids?: number[]; language?: 'en' | 'fr' | null }) => {
     await getFreshCsrfToken();
-    return api.patch<ImageLibrary>(`/library/images/${id}/`, data);
+    return api.patch<MediaLibrary>(`/library/images/${id}/`, data);
   },
   
   delete: async (id: number) => {
@@ -90,5 +107,8 @@ export const ImageLibraryAPI = {
     return api.delete(`/library/images/${id}/`);
   },
   
-  stats: () => api.get<ImageLibraryStats>('/library/images/stats/'),
+  stats: () => api.get<MediaLibraryStats>('/library/images/stats/'),
 };
+
+// Backward compatibility alias
+export const ImageLibraryAPI = MediaLibraryAPI;

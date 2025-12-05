@@ -1,31 +1,33 @@
 import React, { useState } from 'react';
-import { CheckCircle, Pencil, Plus, Search, Trash2 } from 'react-bootstrap-icons';
+import { CheckCircle, Pencil, PlayCircleFill, Plus, Search, Trash2 } from 'react-bootstrap-icons';
 import { useLibrary } from '../../contexts/LibraryContext';
 import { ImageLibraryAPI } from '../../services/library';
-import { ImageLibraryListItem } from '../../types/library';
+import { MediaLibraryListItem, MediaType } from '../../types/library';
 
-interface ImageLibraryProps {
-  onImageSelect?: (imageId: number, imageUrl: string) => void;
+interface MediaLibraryProps {
+  onMediaSelect?: (mediaId: number, mediaUrl: string) => void;
   selectionMode?: boolean;
 }
 
-export const ImageLibrary: React.FC<ImageLibraryProps> = ({ 
-  onImageSelect,
+export const MediaLibrary: React.FC<MediaLibraryProps> = ({ 
+  onMediaSelect,
   selectionMode = false 
 }) => {
-  const { images, tags, setFilters, refreshImages, isLoading } = useLibrary();
+  const { media, tags, setFilters, refreshMedia, isLoading } = useLibrary();
   const [searchText, setSearchText] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingImage, setEditingImage] = useState<ImageLibraryListItem | null>(null);
+  const [editingMedia, setEditingMedia] = useState<MediaLibraryListItem | null>(null);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<'all' | 'en' | 'fr' | 'null'>('all');
+  const [selectedMediaType, setSelectedMediaType] = useState<'all' | 'image' | 'video'>('all');
 
   const handleSearch = () => {
     setFilters({
       search: searchText || undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       language: selectedLanguage === 'all' ? undefined : selectedLanguage,
+      media_type: selectedMediaType === 'all' ? undefined : selectedMediaType as MediaType,
     });
   };
 
@@ -37,29 +39,36 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
     );
   };
 
-  const handleEditImage = (image: ImageLibraryListItem) => {
-    setEditingImage(image);
+  const handleEditMedia = (item: MediaLibraryListItem) => {
+    setEditingMedia(item);
     setShowEditModal(true);
   };
 
-  const handleDeleteImage = async (imageId: number) => {
-    if (!confirm('Are you sure you want to delete this image?')) {
+  const handleDeleteMedia = async (mediaId: number) => {
+    if (!confirm('Are you sure you want to delete this media?')) {
       return;
     }
 
     try {
-      await ImageLibraryAPI.delete(imageId);
-      await refreshImages();
+      await ImageLibraryAPI.delete(mediaId);
+      await refreshMedia();
     } catch (error) {
-      console.error('Failed to delete image:', error);
-      alert('Failed to delete image');
+      console.error('Failed to delete media:', error);
+      alert('Failed to delete media');
     }
   };
 
-  const handleImageSelect = (imageId: number, imageUrl: string) => {
-    if (onImageSelect) {
-      onImageSelect(imageId, imageUrl);
+  const handleMediaSelect = (mediaId: number, mediaUrl: string) => {
+    if (onMediaSelect) {
+      onMediaSelect(mediaId, mediaUrl);
     }
+  };
+
+  const formatDuration = (seconds: number | null): string => {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -68,12 +77,12 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
       <div className="card mb-4">
         <div className="card-body">
           <div className="row g-3">
-            <div className="col-md-6">
+            <div className="col-md-4">
               <div className="input-group">
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search images..."
+                  placeholder="Search media..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -82,6 +91,18 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
                   <Search size={18} />
                 </button>
               </div>
+            </div>
+
+            <div className="col-md-2">
+              <select 
+                className="form-select"
+                value={selectedMediaType}
+                onChange={(e) => setSelectedMediaType(e.target.value as 'all' | 'image' | 'video')}
+              >
+                <option value="all">All Media</option>
+                <option value="image">Images</option>
+                <option value="video">Videos</option>
+              </select>
             </div>
 
             <div className="col-md-3">
@@ -115,7 +136,7 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
                     className={`btn btn-sm ${selectedTags.includes(tag.id) ? 'btn-primary' : 'btn-outline-primary'}`}
                     onClick={() => handleTagToggle(tag.id)}
                   >
-                    {tag.name} ({tag.images_count})
+                    {tag.name} ({tag.media_count})
                   </button>
                 ))}
               </div>
@@ -132,52 +153,69 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
             onClick={() => setShowUploadModal(true)}
           >
             <Plus size={20} className="me-2" />
-            Upload Image
+            Upload Media
           </button>
         </div>
       )}
 
-      {/* Image Grid */}
+      {/* Media Grid */}
       {isLoading ? (
         <div className="text-center py-5">
           <div className="spinner-border" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
         </div>
-      ) : images.length === 0 ? (
+      ) : media.length === 0 ? (
         <div className="text-center py-5 text-muted">
-          <p>No images found. Upload your first image to get started!</p>
+          <p>No media found. Upload your first image or video to get started!</p>
         </div>
       ) : (
         <div className="row g-3">
-          {images.map(image => (
-            <div key={image.id} className="col-md-3">
+          {media.map(item => (
+            <div key={item.id} className="col-md-3">
               <div className="card h-100">
-                <img 
-                  src={image.thumbnail_url} 
-                  alt={image.name}
-                  className="card-img-top"
-                  style={{ height: '200px', objectFit: 'cover' }}
-                />
+                <div className="position-relative">
+                  <img 
+                    src={item.thumbnail_url} 
+                    alt={item.name}
+                    className="card-img-top"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  {item.media_type === 'video' && (
+                    <>
+                      <div className="position-absolute top-50 start-50 translate-middle">
+                        <PlayCircleFill size={48} className="text-white" style={{ opacity: 0.8 }} />
+                      </div>
+                      {item.duration && (
+                        <span className="position-absolute bottom-0 end-0 badge bg-dark m-2">
+                          {formatDuration(item.duration)}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
                 <div className="card-body">
-                  <h6 className="card-title">{image.name}</h6>
-                  {image.description && (
-                    <p className="card-text small text-muted">{image.description}</p>
+                  <h6 className="card-title">{item.name}</h6>
+                  {item.description && (
+                    <p className="card-text small text-muted">{item.description}</p>
                   )}
                   <div className="d-flex flex-wrap gap-1 mb-2">
-                    {image.tags.map(tag => (
+                    <span className={`badge ${item.media_type === 'video' ? 'bg-success' : 'bg-primary'}`}>
+                      {item.media_type.toUpperCase()}
+                    </span>
+                    {item.tags.map(tag => (
                       <span key={tag.id} className="badge bg-secondary">{tag.name}</span>
                     ))}
                   </div>
-                  {image.language && (
-                    <span className="badge bg-info">{image.language.toUpperCase()}</span>
+                  {item.language && (
+                    <span className="badge bg-info">{item.language.toUpperCase()}</span>
                   )}
                 </div>
                 <div className="card-footer d-flex gap-2">
                   {selectionMode ? (
                     <button 
                       className="btn btn-sm btn-success w-100"
-                      onClick={() => handleImageSelect(image.id, image.image_url)}
+                      onClick={() => handleMediaSelect(item.id, item.file_url)}
                     >
                       <CheckCircle size={14} className="me-1" />
                       Select
@@ -186,14 +224,14 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
                     <>
                       <button 
                         className="btn btn-sm btn-primary"
-                        onClick={() => handleEditImage(image)}
+                        onClick={() => handleEditMedia(item)}
                       >
                         <Pencil size={14} className="me-1" />
                         Edit
                       </button>
                       <button 
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleDeleteImage(image.id)}
+                        onClick={() => handleDeleteMedia(item.id)}
                       >
                         <Trash2 size={14} className="me-1" />
                         Delete
@@ -213,24 +251,24 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
           onClose={() => setShowUploadModal(false)}
           onSuccess={() => {
             setShowUploadModal(false);
-            refreshImages();
+            refreshMedia();
           }}
           tags={tags}
         />
       )}
 
       {/* Edit Modal */}
-      {showEditModal && editingImage && (
+      {showEditModal && editingMedia && (
         <EditModal 
-          image={editingImage}
+          media={editingMedia}
           onClose={() => {
             setShowEditModal(false);
-            setEditingImage(null);
+            setEditingMedia(null);
           }}
           onSuccess={() => {
             setShowEditModal(false);
-            setEditingImage(null);
-            refreshImages();
+            setEditingMedia(null);
+            refreshMedia();
           }}
           tags={tags}
         />
@@ -241,15 +279,15 @@ export const ImageLibrary: React.FC<ImageLibraryProps> = ({
 
 // Edit Modal Component
 const EditModal: React.FC<{
-  image: ImageLibraryListItem;
+  media: MediaLibraryListItem;
   onClose: () => void;
   onSuccess: () => void;
   tags: { id: number; name: string }[];
-}> = ({ image, onClose, onSuccess, tags }) => {
-  const [name, setName] = useState(image.name);
-  const [description, setDescription] = useState(image.description);
-  const [selectedTags, setSelectedTags] = useState<number[]>(image.tags.map(t => t.id));
-  const [language, setLanguage] = useState<'en' | 'fr' | ''>(image.language || '');
+}> = ({ media, onClose, onSuccess, tags }) => {
+  const [name, setName] = useState(media.name);
+  const [description, setDescription] = useState(media.description);
+  const [selectedTags, setSelectedTags] = useState<number[]>(media.tags.map(t => t.id));
+  const [language, setLanguage] = useState<'en' | 'fr' | ''>(media.language || '');
   const [isUpdating, setIsUpdating] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,7 +300,7 @@ const EditModal: React.FC<{
 
     setIsUpdating(true);
     try {
-      await ImageLibraryAPI.update(image.id, {
+      await ImageLibraryAPI.update(media.id, {
         name,
         description,
         tag_ids: selectedTags,
@@ -270,8 +308,8 @@ const EditModal: React.FC<{
       });
       onSuccess();
     } catch (error) {
-      console.error('Failed to update image:', error);
-      alert('Failed to update image');
+      console.error('Failed to update media:', error);
+      alert('Failed to update media');
     } finally {
       setIsUpdating(false);
     }
@@ -282,19 +320,28 @@ const EditModal: React.FC<{
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Edit Image</h5>
+            <h5 className="modal-title">Edit {media.media_type === 'video' ? 'Video' : 'Image'}</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
-              {/* Show current image */}
+              {/* Show current media */}
               <div className="mb-3 text-center">
-                <img 
-                  src={image.thumbnail_url} 
-                  alt={image.name}
-                  className="img-fluid rounded"
-                  style={{ maxHeight: '150px' }}
-                />
+                {media.media_type === 'video' ? (
+                  <video 
+                    src={media.file_url}
+                    controls
+                    className="img-fluid rounded"
+                    style={{ maxHeight: '150px' }}
+                  />
+                ) : (
+                  <img 
+                    src={media.thumbnail_url} 
+                    alt={media.name}
+                    className="img-fluid rounded"
+                    style={{ maxHeight: '150px' }}
+                  />
+                )}
               </div>
 
               <div className="mb-3">
@@ -377,9 +424,24 @@ const UploadModal: React.FC<{
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [mediaType, setMediaType] = useState<MediaType>('image');
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [language, setLanguage] = useState<'en' | 'fr' | ''>('');
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(selectedFile);
+    
+    // Auto-detect media type from file
+    if (selectedFile) {
+      if (selectedFile.type.startsWith('video/')) {
+        setMediaType('video');
+      } else if (selectedFile.type.startsWith('image/')) {
+        setMediaType('image');
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -394,14 +456,15 @@ const UploadModal: React.FC<{
       await ImageLibraryAPI.create({
         name,
         description,
-        image: file,
+        file: file,
+        media_type: mediaType,
         tag_ids: selectedTags,
         language: language || null,
       });
       onSuccess();
     } catch (error) {
-      console.error('Failed to upload image:', error);
-      alert('Failed to upload image');
+      console.error('Failed to upload media:', error);
+      alert('Failed to upload media');
     } finally {
       setIsUploading(false);
     }
@@ -412,7 +475,7 @@ const UploadModal: React.FC<{
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Upload Image</h5>
+            <h5 className="modal-title">Upload Media</h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <form onSubmit={handleSubmit}>
@@ -439,14 +502,49 @@ const UploadModal: React.FC<{
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Image File *</label>
+                <label className="form-label">Media Type *</label>
+                <div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      id="mediaTypeImage"
+                      value="image"
+                      checked={mediaType === 'image'}
+                      onChange={(e) => setMediaType(e.target.value as MediaType)}
+                    />
+                    <label className="form-check-label" htmlFor="mediaTypeImage">
+                      Image
+                    </label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      id="mediaTypeVideo"
+                      value="video"
+                      checked={mediaType === 'video'}
+                      onChange={(e) => setMediaType(e.target.value as MediaType)}
+                    />
+                    <label className="form-check-label" htmlFor="mediaTypeVideo">
+                      Video
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Media File *</label>
                 <input
                   type="file"
                   className="form-control"
-                  accept="image/*"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  accept={mediaType === 'video' ? 'video/*' : 'image/*'}
+                  onChange={handleFileChange}
                   required
                 />
+                <div className="form-text">
+                  {mediaType === 'video' ? 'Supported formats: MP4, WebM, etc.' : 'Supported formats: JPG, PNG, GIF, etc.'}
+                </div>
               </div>
 
               <div className="mb-3">

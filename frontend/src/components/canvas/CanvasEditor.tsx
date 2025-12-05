@@ -1,7 +1,7 @@
 import Konva from 'konva';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Layer, Stage } from 'react-konva';
-import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHandlers';
+import { getHandler, CanvasElement as HandlerCanvasElement } from '../../config/referenceHandlers';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { ImageElement as ImageElementType, TextElement as TextElementType } from '../../types/canvas';
 import { ArrowElement } from './elements/ArrowElement';
@@ -11,6 +11,8 @@ import { RectangleElement } from './elements/RectangleElement';
 import { ScrewElement } from './elements/ScrewElement';
 import { ImageElement } from './ImageElement';
 import { TextElement } from './TextElement';
+import { VideoElement } from './VideoElement';
+import { VideoPlayerModal } from './VideoPlayerModal';
 
 interface CanvasEditorProps {
   readOnly?: boolean;
@@ -26,6 +28,36 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ readOnly = false }) 
     deleteSelected,
   } = useCanvas();
   const stageRef = useRef(null);
+  
+  // Video player modal state
+  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [videoModalData, setVideoModalData] = useState<{
+    videoUrl: string;
+    autoplay: boolean;
+    loop: boolean;
+    muted: boolean;
+    description: string;
+  }>({
+    videoUrl: '',
+    autoplay: false,
+    loop: false,
+    muted: true,
+    description: '',
+  });
+
+  // Handler for video element clicks in read-only mode
+  const handleVideoElementClick = (element: HandlerCanvasElement) => {
+    const handler = getHandler(element.type);
+    if (handler?.handleClick) {
+      const context = {
+        showVideoModal: (videoUrl: string, autoplay: boolean, loop: boolean, muted: boolean, description: string) => {
+          setVideoModalData({ videoUrl, autoplay, loop, muted, description });
+          setShowVideoModal(true);
+        }
+      };
+      handler.handleClick(element, context);
+    }
+  };
 
   const handleStageClick = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (readOnly) return; // Disable selection in read-only mode
@@ -143,12 +175,35 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ readOnly = false }) 
                   isSelected={isSelected}
                 />
               );
+            } else if (elementType === 'freeVideo') {
+              const handler = getHandler('freeVideo');
+              return (
+                <VideoElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
+                  isSelected={isSelected}
+                  readOnly={readOnly}
+                  handler={handler}
+                  onElementClick={handleVideoElementClick}
+                />
+              );
             }
             
             return null;
           })}
         </Layer>
       </Stage>
+      
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        show={showVideoModal}
+        onHide={() => setShowVideoModal(false)}
+        videoUrl={videoModalData.videoUrl}
+        autoplay={videoModalData.autoplay}
+        loop={videoModalData.loop}
+        muted={videoModalData.muted}
+        description={videoModalData.description}
+      />
     </div>
   );
 };

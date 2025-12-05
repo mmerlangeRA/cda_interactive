@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Sheet, SheetPage, InteractiveElement, ImageTag, ImageLibrary,
+    Sheet, SheetPage, InteractiveElement, MediaTag, MediaLibrary,
     ReferenceValue, FieldDefinitionValue, ReferenceHistory
 )
 
@@ -53,12 +53,12 @@ class InteractiveElementSerializer(serializers.ModelSerializer):
         for field_data in field_values_data:
             # Handle image field specially
             if 'value_image' in field_data and field_data['value_image'] is not None:
-                from .models import ImageLibrary
+                from .models import MediaLibrary
                 image_id = field_data.pop('value_image')
                 try:
-                    image_instance = ImageLibrary.objects.get(id=image_id)
+                    image_instance = MediaLibrary.objects.get(id=image_id)
                     field_data['value_image'] = image_instance
-                except ImageLibrary.DoesNotExist:
+                except MediaLibrary.DoesNotExist:
                     field_data['value_image'] = None
             
             FieldDefinitionValue.objects.create(interactive_element=element, **field_data)
@@ -82,12 +82,12 @@ class InteractiveElementSerializer(serializers.ModelSerializer):
             for field_data in field_values_data:
                 # Handle image field specially
                 if 'value_image' in field_data and field_data['value_image'] is not None:
-                    from .models import ImageLibrary
+                    from .models import MediaLibrary
                     image_id = field_data.pop('value_image')
                     try:
-                        image_instance = ImageLibrary.objects.get(id=image_id)
+                        image_instance = MediaLibrary.objects.get(id=image_id)
                         field_data['value_image'] = image_instance
-                    except ImageLibrary.DoesNotExist:
+                    except MediaLibrary.DoesNotExist:
                         field_data['value_image'] = None
                 
                 FieldDefinitionValue.objects.create(interactive_element=instance, **field_data)
@@ -231,58 +231,80 @@ class InteractiveElementListSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username']
 
 
-class ImageTagSerializer(serializers.ModelSerializer):
-    """Serializer for image tags"""
-    images_count = serializers.SerializerMethodField()
+class MediaTagSerializer(serializers.ModelSerializer):
+    """Serializer for media tags"""
+    media_count = serializers.SerializerMethodField()
     
     class Meta:
-        model = ImageTag
-        fields = ['id', 'name', 'created_at', 'images_count']
+        model = MediaTag
+        fields = ['id', 'name', 'created_at', 'media_count']
         read_only_fields = ['id', 'created_at']
     
-    def get_images_count(self, obj):
-        return obj.images.count()
+    def get_media_count(self, obj):
+        return obj.media_items.count()
 
 
-class ImageLibrarySerializer(serializers.ModelSerializer):
-    """Serializer for image library with full details"""
+# Backward compatibility alias
+ImageTagSerializer = MediaTagSerializer
+
+
+class MediaLibrarySerializer(serializers.ModelSerializer):
+    """Serializer for media library with full details (images and videos)"""
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
-    tags = ImageTagSerializer(many=True, read_only=True)
+    tags = MediaTagSerializer(many=True, read_only=True)
     tag_ids = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=ImageTag.objects.all(),
+        queryset=MediaTag.objects.all(),
         write_only=True,
         required=False,
         source='tags'
     )
-    image_url = serializers.SerializerMethodField()
+    file_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
     
     class Meta:
-        model = ImageLibrary
+        model = MediaLibrary
         fields = [
             'id',
             'name',
             'description',
-            'image',
-            'image_url',
+            'media_type',
+            'file',
+            'file_url',
+            'thumbnail',
+            'thumbnail_url',
             'tags',
             'tag_ids',
             'language',
             'width',
             'height',
+            'file_size',
+            'duration',
             'created_at',
             'updated_at',
             'created_by',
             'created_by_username'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username', 'width', 'height']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'created_by_username', 'width', 'height', 'file_size', 'duration']
     
-    def get_image_url(self, obj):
-        if obj.image:
+    def get_file_url(self, obj):
+        if obj.file:
             request = self.context.get('request')
             if request is not None:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
+        return None
+    
+    def get_thumbnail_url(self, obj):
+        # For videos, use thumbnail if available
+        if obj.media_type == 'video' and obj.thumbnail:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        # For images, return the file itself as thumbnail
+        elif obj.media_type == 'image':
+            return self.get_file_url(obj)
         return None
     
     def create(self, validated_data):
@@ -291,48 +313,66 @@ class ImageLibrarySerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class ImageLibraryListSerializer(serializers.ModelSerializer):
+# Backward compatibility alias
+ImageLibrarySerializer = MediaLibrarySerializer
+
+
+class MediaLibraryListSerializer(serializers.ModelSerializer):
     """Simplified serializer for list views"""
     created_by_username = serializers.CharField(source='created_by.username', read_only=True)
-    tags = ImageTagSerializer(many=True, read_only=True)
-    image_url = serializers.SerializerMethodField()
+    tags = MediaTagSerializer(many=True, read_only=True)
+    file_url = serializers.SerializerMethodField()
     thumbnail_url = serializers.SerializerMethodField()
     
     class Meta:
-        model = ImageLibrary
+        model = MediaLibrary
         fields = [
             'id',
             'name',
             'description',
-            'image_url',
+            'media_type',
+            'file_url',
             'thumbnail_url',
             'tags',
             'language',
             'width',
             'height',
+            'file_size',
+            'duration',
             'created_at',
             'created_by_username'
         ]
     
-    def get_image_url(self, obj):
-        if obj.image:
+    def get_file_url(self, obj):
+        if obj.file:
             request = self.context.get('request')
             if request is not None:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
+                return request.build_absolute_uri(obj.file.url)
+            return obj.file.url
         return None
     
     def get_thumbnail_url(self, obj):
-        # For now, return the same as image_url
-        # In future, could implement thumbnail generation
-        return self.get_image_url(obj)
+        # For videos, use thumbnail if available
+        if obj.media_type == 'video' and obj.thumbnail:
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        # For images, return the file itself as thumbnail
+        elif obj.media_type == 'image':
+            return self.get_file_url(obj)
+        return None
+
+
+# Backward compatibility alias  
+ImageLibraryListSerializer = MediaLibraryListSerializer
 
 
 class FieldDefinitionValueSerializer(serializers.ModelSerializer):
     """Serializer for field definition values"""
     value = serializers.SerializerMethodField()
     value_image = serializers.PrimaryKeyRelatedField(read_only=True)
-    image = ImageLibraryListSerializer(source='value_image', read_only=True)
+    image = MediaLibraryListSerializer(source='value_image', read_only=True)
     
     class Meta:
         model = FieldDefinitionValue
@@ -411,12 +451,12 @@ class ReferenceValueSerializer(serializers.ModelSerializer):
         for field_data in fields_data:
             # Handle image field specially - convert ID to instance
             if 'value_image' in field_data and field_data['value_image'] is not None:
-                from .models import ImageLibrary
+                from .models import MediaLibrary
                 image_id = field_data.pop('value_image')
                 try:
-                    image_instance = ImageLibrary.objects.get(id=image_id)
+                    image_instance = MediaLibrary.objects.get(id=image_id)
                     field_data['value_image'] = image_instance
-                except ImageLibrary.DoesNotExist:
+                except MediaLibrary.DoesNotExist:
                     field_data['value_image'] = None
             
             FieldDefinitionValue.objects.create(reference=reference, **field_data)
@@ -461,12 +501,12 @@ class ReferenceValueSerializer(serializers.ModelSerializer):
             for field_data in fields_data:
                 # Handle image field specially - convert ID to instance
                 if 'value_image' in field_data and field_data['value_image'] is not None:
-                    from .models import ImageLibrary
+                    from .models import MediaLibrary
                     image_id = field_data.pop('value_image')
                     try:
-                        image_instance = ImageLibrary.objects.get(id=image_id)
+                        image_instance = MediaLibrary.objects.get(id=image_id)
                         field_data['value_image'] = image_instance
-                    except ImageLibrary.DoesNotExist:
+                    except MediaLibrary.DoesNotExist:
                         field_data['value_image'] = None
                 
                 FieldDefinitionValue.objects.create(reference=instance, **field_data)

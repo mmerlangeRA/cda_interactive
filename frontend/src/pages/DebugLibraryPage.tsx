@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ImageLibrary } from '../components/library/ImageLibrary';
+import { MediaLibrary } from '../components/library/MediaLibrary';
 import { LibraryProvider } from '../contexts/LibraryContext';
 
 const DebugLibraryPage: React.FC = () => {
@@ -130,9 +130,9 @@ const DebugLibraryPage: React.FC = () => {
                 The Edit and Delete buttons are hidden in this mode and replaced with a Select button.
               </div>
               <LibraryProvider>
-                <ImageLibrary 
+                <MediaLibrary 
                   selectionMode={true}
-                  onImageSelect={handleImageSelect}
+                  onMediaSelect={handleImageSelect}
                 />
               </LibraryProvider>
             </div>
@@ -149,7 +149,7 @@ const DebugLibraryPage: React.FC = () => {
             </div>
             <div className="card-body">
               <pre className="bg-light p-3 rounded">
-{`import { ImageLibrary } from '../components/library/ImageLibrary';
+{`import { MediaLibrary } from '../components/library/MediaLibrary';
 import { LibraryProvider } from '../contexts/LibraryContext';
 
 function MyComponent() {
@@ -164,9 +164,9 @@ function MyComponent() {
 
   return (
     <LibraryProvider>
-      <ImageLibrary 
+      <MediaLibrary 
         selectionMode={true}
-        onImageSelect={handleImageSelect}
+        onMediaSelect={handleImageSelect}
       />
     </LibraryProvider>
   );

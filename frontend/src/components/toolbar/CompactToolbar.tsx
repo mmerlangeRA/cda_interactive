@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Badge, Button, ButtonGroup, Dropdown, Form, ListGroup, Modal, Spinner } from 'react-bootstrap';
-import { ArrowRight, ChevronDown, Circle, Image, Save, Square, Trash, TypeBold } from 'react-bootstrap-icons';
+import { ArrowRight, CameraVideo, ChevronDown, Circle, Image, Save, Square, Trash, TypeBold } from 'react-bootstrap-icons';
 import { REFERENCE_TYPES, getReferenceModel } from '../../config/references';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { useError } from '../../contexts/ErrorContext';
@@ -19,6 +19,7 @@ export const CompactToolbar: React.FC<CompactToolbarProps> = ({ onSpawnReference
   const { 
     addFreeTextElement, 
     addFreeImageElement,
+    addFreeVideoElement,
     addCircleElement,
     addRectangleElement,
     addArrowElement,
@@ -129,6 +130,14 @@ export const CompactToolbar: React.FC<CompactToolbarProps> = ({ onSpawnReference
               >
                 <Image size={16} />
                 Image
+              </Button>
+              <Button
+                variant="primary"
+                onClick={addFreeVideoElement}
+                className="d-flex align-items-center gap-2"
+              >
+                <CameraVideo size={16} />
+                Video
               </Button>
               <Button
                 variant="primary"

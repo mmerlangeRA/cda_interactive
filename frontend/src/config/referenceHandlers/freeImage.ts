@@ -12,7 +12,7 @@ export class FreeImageElementHandler extends ReferenceElementHandler {
   spawn(reference: ReferenceValue, position: SpawnPosition): CanvasElement {
     // For freeImage, we don't use a reference but we still need to implement spawn
     // This can be used if we ever want to spawn from a template
-    const imageUrl = reference.fields.find(f => f.name === 'image' && f.type === 'image')?.image?.image_url || '';
+    const imageUrl = reference.fields.find(f => f.name === 'image' && f.type === 'image')?.image?.file_url || '';
     const description = reference.fields.find(f => f.name === 'description')?.value as string || '';
     
     const defaults = this.getDefaultProperties();

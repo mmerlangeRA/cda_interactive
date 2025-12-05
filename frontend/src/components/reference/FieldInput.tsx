@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ImageLibrary, ImageLibraryListItem } from '../../types/library';
 import { FieldType } from '../../types/reference';
-import { ImageLibrary as ImageLibraryComponent } from '../library/ImageLibrary';
+import { MediaLibrary } from '../library/MediaLibrary';
 
 interface FieldInputProps {
   name: string;
@@ -104,7 +104,7 @@ export const FieldInput: React.FC<FieldInputProps> = ({
             <div className="card-body">
               <div className="d-flex align-items-center gap-3">
                 <img
-                  src={imageValue.image_url}
+                  src={imageValue.file_url}
                   alt={imageValue.name}
                   style={{ maxWidth: '100px', maxHeight: '100px', objectFit: 'contain' }}
                 />
@@ -155,9 +155,9 @@ export const FieldInput: React.FC<FieldInputProps> = ({
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <ImageLibraryComponent
+                  <MediaLibrary
                     selectionMode={true}
-                    onImageSelect={(imageId) => handleImageSelect(imageId)}
+                    onMediaSelect={(imageId) => handleImageSelect(imageId)}
                   />
                 </div>
               </div>

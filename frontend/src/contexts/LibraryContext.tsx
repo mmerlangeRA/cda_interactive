@@ -1,35 +1,40 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { ImageLibraryAPI, ImageTagsAPI } from '../services/library';
-import { ImageLibraryFilters, ImageLibraryListItem, ImageTag } from '../types/library';
+import { MediaLibraryAPI, MediaTagsAPI } from '../services/library';
+import { MediaLibraryFilters, MediaLibraryListItem, MediaTag } from '../types/library';
 
 interface LibraryContextType {
-  images: ImageLibraryListItem[];
-  tags: ImageTag[];
-  filters: ImageLibraryFilters;
+  media: MediaLibraryListItem[];
+  images: MediaLibraryListItem[];  // Backward compatibility - filtered to images only
+  videos: MediaLibraryListItem[];  // Filtered to videos only
+  tags: MediaTag[];
+  filters: MediaLibraryFilters;
   isLoading: boolean;
-  loadImages: () => Promise<void>;
+  loadMedia: () => Promise<void>;
   loadTags: () => Promise<void>;
-  setFilters: (filters: ImageLibraryFilters) => void;
-  refreshImages: () => Promise<void>;
+  setFilters: (filters: MediaLibraryFilters) => void;
+  refreshMedia: () => Promise<void>;
   refreshTags: () => Promise<void>;
+  // Backward compatibility aliases
+  loadImages: () => Promise<void>;
+  refreshImages: () => Promise<void>;
 }
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
 
 export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [images, setImages] = useState<ImageLibraryListItem[]>([]);
-  const [tags, setTags] = useState<ImageTag[]>([]);
-  const [filters, setFilters] = useState<ImageLibraryFilters>({});
+  const [media, setMedia] = useState<MediaLibraryListItem[]>([]);
+  const [tags, setTags] = useState<MediaTag[]>([]);
+  const [filters, setFilters] = useState<MediaLibraryFilters>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const loadImages = useCallback(async () => {
+  const loadMedia = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await ImageLibraryAPI.list(filters);
-      setImages(response.data);
+      const response = await MediaLibraryAPI.list(filters);
+      setMedia(response.data);
     } catch (error) {
-      console.error('Failed to load images:', error);
-      setImages([]);
+      console.error('Failed to load media:', error);
+      setMedia([]);
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +42,7 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const loadTags = useCallback(async () => {
     try {
-      const response = await ImageTagsAPI.list();
+      const response = await MediaTagsAPI.list();
       setTags(response.data);
     } catch (error) {
       console.error('Failed to load tags:', error);
@@ -45,18 +50,26 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
-  const refreshImages = useCallback(async () => {
-    await loadImages();
-  }, [loadImages]);
+  const refreshMedia = useCallback(async () => {
+    await loadMedia();
+  }, [loadMedia]);
 
   const refreshTags = useCallback(async () => {
     await loadTags();
   }, [loadTags]);
 
-  // Load images when filters change
+  // Backward compatibility aliases
+  const loadImages = loadMedia;
+  const refreshImages = refreshMedia;
+
+  // Filtered lists
+  const images = media.filter(item => item.media_type === 'image');
+  const videos = media.filter(item => item.media_type === 'video');
+
+  // Load media when filters change
   useEffect(() => {
-    loadImages();
-  }, [loadImages]);
+    loadMedia();
+  }, [loadMedia]);
 
   // Load tags on mount
   useEffect(() => {
@@ -66,15 +79,19 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <LibraryContext.Provider
       value={{
+        media,
         images,
+        videos,
         tags,
         filters,
         isLoading,
-        loadImages,
+        loadMedia,
         loadTags,
         setFilters,
-        refreshImages,
+        refreshMedia,
         refreshTags,
+        loadImages,
+        refreshImages,
       }}
     >
       {children}
