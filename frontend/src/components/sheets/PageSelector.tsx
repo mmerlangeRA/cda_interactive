@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Dropdown, Modal } from 'react-bootstrap';
+import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useSheet } from '../../contexts/SheetContext';
@@ -7,8 +8,10 @@ import { useSuccess } from '../../contexts/SuccessContext';
 import { SheetPagesAPI } from '../../services/api';
 import { SheetPage } from '../../types';
 
+
 export const PageSelector: React.FC = () => {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const { selectedSheet, selectedPage, selectPage, createPage, deletePage } = useSheet();
   const { setError } = useError();
   const { setSuccess } = useSuccess();
@@ -124,11 +127,13 @@ export const PageSelector: React.FC = () => {
               </Dropdown.Item>
             ))
           )}
-          {pages.length > 0 && <Dropdown.Divider />}
-          <Dropdown.Item onClick={handleAddPage} disabled={isLoading}>
-            ➕ {t('pages.addNewPage')}
-          </Dropdown.Item>
-          {selectedPage && (
+          {pages.length > 0 && user?.role !== 'READER' && <Dropdown.Divider />}
+          {user?.role !== 'READER' && (
+            <Dropdown.Item onClick={handleAddPage} disabled={isLoading}>
+              ➕ {t('pages.addNewPage')}
+            </Dropdown.Item>
+          )}
+          {selectedPage && user?.role !== 'READER' && (
             <Dropdown.Item onClick={handleDeleteClick} disabled={isLoading}>
               🗑️ {t('pages.deleteCurrentPage')}
             </Dropdown.Item>
