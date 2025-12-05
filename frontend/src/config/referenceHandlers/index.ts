@@ -1,13 +1,19 @@
+export * from './arrow';
 export * from './base';
+export * from './circle';
 export * from './freeImage';
 export * from './freeText';
 export * from './gabarit';
+export * from './rectangle';
 export * from './screw';
 
+import { arrowHandler } from './arrow';
 import { ReferenceElementHandler } from './base';
+import { circleHandler } from './circle';
 import { freeImageHandler } from './freeImage';
 import { freeTextHandler } from './freeText';
 import { gabaritHandler } from './gabarit';
+import { rectangleHandler } from './rectangle';
 import { screwHandler } from './screw';
 
 /**
@@ -18,6 +24,9 @@ const handlerRegistry: Map<string, ReferenceElementHandler> = new Map<string, Re
   ['gabarit', gabaritHandler as ReferenceElementHandler],
   ['freeImage', freeImageHandler as ReferenceElementHandler],
   ['freeText', freeTextHandler as ReferenceElementHandler],
+  ['circle', circleHandler as ReferenceElementHandler],
+  ['rectangle', rectangleHandler as ReferenceElementHandler],
+  ['arrow', arrowHandler as ReferenceElementHandler],
 ]);
 
 /**

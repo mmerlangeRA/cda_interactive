@@ -1,5 +1,14 @@
-import { Icon, Image, Rulers, Screwdriver, TypeBold } from 'react-bootstrap-icons';
-import { freeImageHandler, freeTextHandler, gabaritHandler, ReferenceElementHandler, screwHandler } from './referenceHandlers';
+import { ArrowRight, Circle, Icon, Image, Rulers, Screwdriver, Square, TypeBold } from 'react-bootstrap-icons';
+import {
+  arrowHandler,
+  circleHandler,
+  freeImageHandler,
+  freeTextHandler,
+  gabaritHandler,
+  rectangleHandler,
+  ReferenceElementHandler,
+  screwHandler
+} from './referenceHandlers';
 
 export type FieldType = 'string' | 'int' | 'float' | 'image';
 
@@ -111,6 +120,27 @@ export const REFERENCE_TYPES: ReferenceModel[] = [
         needs_translation: false,
       },
     ],
+  },
+  {
+    type: 'circle',
+    label: 'Circle',
+    icon: Circle,
+    handler: circleHandler,
+    fields: [],
+  },
+  {
+    type: 'rectangle',
+    label: 'Rectangle',
+    icon: Square,
+    handler: rectangleHandler,
+    fields: [],
+  },
+  {
+    type: 'arrow',
+    label: 'Arrow',
+    icon: ArrowRight,
+    handler: arrowHandler,
+    fields: [],
   },
 ];
 

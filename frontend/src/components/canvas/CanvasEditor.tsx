@@ -4,7 +4,10 @@ import { Layer, Stage } from 'react-konva';
 import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHandlers';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { ImageElement as ImageElementType, TextElement as TextElementType } from '../../types/canvas';
+import { ArrowElement } from './elements/ArrowElement';
+import { CircleElement } from './elements/CircleElement';
 import { GabaritElement } from './elements/GabaritElement';
+import { RectangleElement } from './elements/RectangleElement';
 import { ScrewElement } from './elements/ScrewElement';
 import { ImageElement } from './ImageElement';
 import { TextElement } from './TextElement';
@@ -89,6 +92,30 @@ export const CanvasEditor: React.FC = () => {
                 <ImageElement
                   key={element.id}
                   element={imageElementForDisplay}
+                  isSelected={isSelected}
+                />
+              );
+            } else if (elementType === 'circle') {
+              return (
+                <CircleElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
+                  isSelected={isSelected}
+                />
+              );
+            } else if (elementType === 'rectangle') {
+              return (
+                <RectangleElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
+                  isSelected={isSelected}
+                />
+              );
+            } else if (elementType === 'arrow') {
+              return (
+                <ArrowElement
+                  key={element.id}
+                  element={element as unknown as HandlerCanvasElement}
                   isSelected={isSelected}
                 />
               );

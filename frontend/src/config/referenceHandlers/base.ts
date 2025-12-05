@@ -40,6 +40,13 @@ export abstract class ReferenceElementHandler {
   abstract getDefaultProperties(): Partial<CanvasElement>;
   
   /**
+   * Create an element with default properties (optional)
+   * Used for elements that don't require a reference (shapes, free elements)
+   * Override in subclasses that support direct creation
+   */
+  createWithDefaults?(position: SpawnPosition): CanvasElement;
+  
+  /**
    * Serialize element to backend format
    * Converts canvas element to InteractiveElement data
    */

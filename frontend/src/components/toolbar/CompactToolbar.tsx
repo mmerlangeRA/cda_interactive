@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Badge, Button, ButtonGroup, Form, ListGroup, Modal, Spinner } from 'react-bootstrap';
-import { ChevronDown, Image, Save, Trash, TypeBold } from 'react-bootstrap-icons';
+import { Badge, Button, ButtonGroup, Dropdown, Form, ListGroup, Modal, Spinner } from 'react-bootstrap';
+import { ArrowRight, ChevronDown, Circle, Image, Save, Square, Trash, TypeBold } from 'react-bootstrap-icons';
 import { REFERENCE_TYPES, getReferenceModel } from '../../config/references';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { useError } from '../../contexts/ErrorContext';
@@ -16,7 +16,17 @@ interface CompactToolbarProps {
 }
 
 export const CompactToolbar: React.FC<CompactToolbarProps> = ({ onSpawnReference }) => {
-  const { addFreeTextElement, addFreeImageElement, selectedId, deleteSelected, saveElements, saving } = useCanvas();
+  const { 
+    addFreeTextElement, 
+    addFreeImageElement,
+    addCircleElement,
+    addRectangleElement,
+    addArrowElement,
+    selectedId, 
+    deleteSelected, 
+    saveElements, 
+    saving 
+  } = useCanvas();
   const { selectedPage } = useSheet();
   const { setError } = useError();
   const { setSuccess } = useSuccess();
@@ -92,6 +102,26 @@ export const CompactToolbar: React.FC<CompactToolbarProps> = ({ onSpawnReference
                 <TypeBold size={16} />
                 Text
               </Button>
+              <Dropdown as={ButtonGroup}>
+                <Dropdown.Toggle variant="primary" size="sm" className="d-flex align-items-center gap-2">
+                  <Square size={16} />
+                  Shapes
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={addCircleElement}>
+                    <Circle size={14} className="me-2" />
+                    Circle
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={addRectangleElement}>
+                    <Square size={14} className="me-2" />
+                    Rectangle
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={addArrowElement}>
+                    <ArrowRight size={14} className="me-2" />
+                    Arrow
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
               <Button
                 variant="primary"
                 onClick={addFreeImageElement}

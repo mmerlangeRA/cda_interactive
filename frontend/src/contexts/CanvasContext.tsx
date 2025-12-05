@@ -19,6 +19,9 @@ interface CanvasContextType {
   addFreeTextElement: () => void;
   addImageElement: (src: string) => void;
   addFreeImageElement: () => void;
+  addCircleElement: () => void;
+  addRectangleElement: () => void;
+  addArrowElement: () => void;
   addReferenceElement: (element: HandlerCanvasElement) => void;
   updateElement: (id: string, attrs: Partial<CanvasElement>) => void;
   deleteElement: (id: string) => void;
@@ -61,6 +64,30 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const addFreeImageElement = useCallback(() => {
     // Create a freeImage element with gray placeholder
     const newElement = freeImageHandler.createWithPlaceholder({ x: 100, y: 100 });
+    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
+    setSelectedId(newElement.id);
+  }, []);
+
+  const addCircleElement = useCallback(() => {
+    const model = getReferenceModel('circle');
+    if (!model || !model.handler.createWithDefaults) return;
+    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
+    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
+    setSelectedId(newElement.id);
+  }, []);
+
+  const addRectangleElement = useCallback(() => {
+    const model = getReferenceModel('rectangle');
+    if (!model || !model.handler.createWithDefaults) return;
+    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
+    setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
+    setSelectedId(newElement.id);
+  }, []);
+
+  const addArrowElement = useCallback(() => {
+    const model = getReferenceModel('arrow');
+    if (!model || !model.handler.createWithDefaults) return;
+    const newElement = model.handler.createWithDefaults({ x: 100, y: 100 });
     setElements((prev) => [...prev, newElement as unknown as CanvasElement]);
     setSelectedId(newElement.id);
   }, []);
@@ -320,6 +347,9 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         addFreeTextElement,
         addImageElement,
         addFreeImageElement,
+        addCircleElement,
+        addRectangleElement,
+        addArrowElement,
         addReferenceElement,
         updateElement,
         deleteElement,
