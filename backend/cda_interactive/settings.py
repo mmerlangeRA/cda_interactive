@@ -15,7 +15,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
-
+print(ALLOWED_HOSTS)
 # Application definition
 
 INSTALLED_APPS = [
@@ -154,6 +154,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8001",
+    "http://192.168.1.23:8001"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -162,6 +163,7 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8001",
+    "http://192.168.1.23:8001"
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'

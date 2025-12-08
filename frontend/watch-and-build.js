@@ -60,6 +60,21 @@ async function main() {
     await runCommand('npx', ['tsc', '-b']);
     await runCommand('npx', ['vite', 'build']);
     copyFiles('dist/assets', '../backend/users/static/frontend/assets');
+    
+    // Copy PWA files
+    console.log('Copying PWA files...');
+    if (fs.existsSync('dist/manifest.json')) {
+      fs.copyFileSync('dist/manifest.json', '../backend/users/static/frontend/manifest.json');
+      console.log('Copied manifest.json');
+    }
+    if (fs.existsSync('dist/sw.js')) {
+      fs.copyFileSync('dist/sw.js', '../backend/users/static/frontend/sw.js');
+      console.log('Copied sw.js');
+    }
+    if (fs.existsSync('dist/icons')) {
+      copyFiles('dist/icons', '../backend/users/static/frontend/icons');
+      console.log('Copied icons directory');
+    }
 
     // Set up file watcher for TypeScript files
     console.log('Watching for file changes...');
@@ -88,7 +103,18 @@ async function main() {
           await runCommand('npx', ['vite', 'build']);
           console.log('Vite build successful. Copying assets...');
           copyFiles('dist/assets', '../backend/users/static/frontend/assets');
-          console.log('Assets copied successfully.');
+          
+          // Copy PWA files
+          if (fs.existsSync('dist/manifest.json')) {
+            fs.copyFileSync('dist/manifest.json', '../backend/users/static/frontend/manifest.json');
+          }
+          if (fs.existsSync('dist/sw.js')) {
+            fs.copyFileSync('dist/sw.js', '../backend/users/static/frontend/sw.js');
+          }
+          if (fs.existsSync('dist/icons')) {
+            copyFiles('dist/icons', '../backend/users/static/frontend/icons');
+          }
+          console.log('Assets and PWA files copied successfully.');
         } catch (err) {
           console.error('Error during build or copy:', err);
         } finally {
