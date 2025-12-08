@@ -61,7 +61,9 @@
     "createSuccess": "Page created successfully",
     "deleteError": "Failed to delete page",
     "createError": "Failed to create page",
-    "defaultDescription": "Page {number} - Description"
+    "defaultDescription": "Page {number} - Description",
+    "editDescription": "edit description",
+    "descriptionFor": "edit description for"
   },
   "canvas": {
     "editor": "Canvas Editor",

@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import React, { useEffect, useRef, useState } from 'react';
-import { Text, Transformer } from 'react-konva';
+import { Group, Rect, Text, Transformer } from 'react-konva';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { TextElement as TextElementType } from '../../types/canvas';
 
@@ -62,19 +62,61 @@ export const TextElement: React.FC<TextElementProps> = ({ element, isSelected })
     setIsEditing(false);
   };
 
+  // Check if box border should be rendered
+  const hasBoxBorder = element.boxBorderWidth && element.boxBorderWidth > 0;
+
   return (
     <>
-      <Text
-        ref={textRef}
-        {...element}
-        draggable={isSelected}
-        onClick={() => selectElement(element.id)}
-        onTap={() => selectElement(element.id)}
-        onDragEnd={handleDragEnd}
-        onTransformEnd={handleTransformEnd}
-        onDblClick={handleDoubleClick}
-        onDblTap={handleDoubleClick}
-      />
+      {hasBoxBorder ? (
+        <Group
+          x={element.x}
+          y={element.y}
+          width={element.width}
+          height={element.height}
+          rotation={element.rotation}
+          scaleX={element.scaleX}
+          scaleY={element.scaleY}
+          opacity={element.opacity}
+          draggable={isSelected}
+          onClick={() => selectElement(element.id)}
+          onTap={() => selectElement(element.id)}
+          onDragEnd={handleDragEnd}
+          onDblClick={handleDoubleClick}
+          onDblTap={handleDoubleClick}
+        >
+          <Rect
+            width={element.width}
+            height={element.height}
+            stroke={element.boxBorderColor || '#000000'}
+            strokeWidth={element.boxBorderWidth || 0}
+            fill="transparent"
+          />
+          <Text
+            ref={textRef}
+            text={element.text}
+            fontSize={element.fontSize}
+            fontFamily={element.fontFamily}
+            fill={element.fill}
+            width={element.width}
+            height={element.height}
+            align={element.align}
+            verticalAlign={element.verticalAlign}
+            onTransformEnd={handleTransformEnd}
+          />
+        </Group>
+      ) : (
+        <Text
+          ref={textRef}
+          {...element}
+          draggable={isSelected}
+          onClick={() => selectElement(element.id)}
+          onTap={() => selectElement(element.id)}
+          onDragEnd={handleDragEnd}
+          onTransformEnd={handleTransformEnd}
+          onDblClick={handleDoubleClick}
+          onDblTap={handleDoubleClick}
+        />
+      )}
       {isSelected && (
         <Transformer
           ref={transformerRef}

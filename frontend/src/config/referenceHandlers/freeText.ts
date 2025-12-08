@@ -31,6 +31,10 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
       fontSize,
       fontFamily: 'Arial',
       fill,
+      align: 'center', // Center text horizontally
+      verticalAlign: 'middle', // Center text vertically
+      boxBorderColor: '#000000', // Box border color
+      boxBorderWidth: 0, // No box border by default
     };
   }
   
@@ -59,6 +63,10 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
       fontSize: 24,
       fontFamily: 'Arial',
       fill: '#000000',
+      align: 'center', // Center text horizontally
+      verticalAlign: 'middle', // Center text vertically
+      boxBorderColor: '#000000', // Box border color
+      boxBorderWidth: 0, // No box border by default
     };
   }
   
@@ -78,6 +86,10 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
       fontSize: element.fontSize || 24,
       fontFamily: element.fontFamily || 'Arial',
       fill: element.fill || '#000000',
+      align: element.align || 'center',
+      verticalAlign: element.verticalAlign || 'middle',
+      boxBorderColor: element.boxBorderColor || '#000000',
+      boxBorderWidth: element.boxBorderWidth ?? 0,
     };
   }
   
@@ -89,6 +101,10 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
       fontSize: (description.fontSize as number) || 24,
       fontFamily: (description.fontFamily as string) || 'Arial',
       fill: (description.fill as string) || '#000000',
+      align: (description.align as string) || 'center',
+      verticalAlign: (description.verticalAlign as string) || 'middle',
+      boxBorderColor: (description.boxBorderColor as string) || '#000000',
+      boxBorderWidth: (description.boxBorderWidth as number) ?? 0,
     };
   }
   
@@ -185,6 +201,62 @@ export class FreeTextElementHandler extends ReferenceElementHandler {
           value: String(element.fill || '#000000'),
           onChange: (e: any) => 
             updateElement(element.id, { fill: e.target.value }),
+          size: "sm"
+        })
+      ),
+      React.createElement(Form.Group as any, { className: "mb-3" },
+        React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
+          "Horizontal Align"
+        ),
+        React.createElement(Form.Select as any, {
+          value: String(element.align || 'center'),
+          onChange: (e: any) => 
+            updateElement(element.id, { align: e.target.value }),
+          size: "sm"
+        },
+          React.createElement('option', { value: 'left' }, 'Left'),
+          React.createElement('option', { value: 'center' }, 'Center'),
+          React.createElement('option', { value: 'right' }, 'Right')
+        )
+      ),
+      React.createElement(Form.Group as any, { className: "mb-3" },
+        React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
+          "Vertical Align"
+        ),
+        React.createElement(Form.Select as any, {
+          value: String(element.verticalAlign || 'middle'),
+          onChange: (e: any) => 
+            updateElement(element.id, { verticalAlign: e.target.value }),
+          size: "sm"
+        },
+          React.createElement('option', { value: 'top' }, 'Top'),
+          React.createElement('option', { value: 'middle' }, 'Middle'),
+          React.createElement('option', { value: 'bottom' }, 'Bottom')
+        )
+      ),
+      React.createElement(Form.Group as any, { className: "mb-3" },
+        React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
+          "Box Border Color"
+        ),
+        React.createElement(Form.Control as any, {
+          type: "color",
+          value: String(element.boxBorderColor || '#000000'),
+          onChange: (e: any) => 
+            updateElement(element.id, { boxBorderColor: e.target.value }),
+          size: "sm"
+        })
+      ),
+      React.createElement(Form.Group as any, { className: "mb-3" },
+        React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
+          "Box Border Thickness"
+        ),
+        React.createElement(Form.Control as any, {
+          type: "number",
+          min: 0,
+          max: 10,
+          value: Number(element.boxBorderWidth ?? 0),
+          onChange: (e: any) => 
+            updateElement(element.id, { boxBorderWidth: Number(e.target.value) }),
           size: "sm"
         })
       )

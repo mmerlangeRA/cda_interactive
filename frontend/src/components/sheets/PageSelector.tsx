@@ -19,6 +19,9 @@ export const PageSelector: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editDescription, setEditDescription] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const loadPages = async () => {
     if (!selectedSheet) {
@@ -76,6 +79,41 @@ export const PageSelector: React.FC = () => {
     }
   };
 
+  const handleEditClick = () => {
+    if (selectedPage) {
+      const currentDescription = getPageDescription(selectedPage);
+      setEditDescription(currentDescription === t('pages.noDescription') ? '' : currentDescription);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleEditSave = async () => {
+    if (!selectedPage) return;
+
+    try {
+      setIsSaving(true);
+      // Merge new description with existing ones
+      const updatedDescription = {
+        ...selectedPage.description,
+        [language]: editDescription,
+      };
+      
+      await SheetPagesAPI.partialUpdate(selectedPage.id, {
+        description: updatedDescription,
+      });
+      
+      setSuccess(t('pages.updateSuccess'));
+      setShowEditModal(false);
+      // Reload pages to show updated description
+      await loadPages();
+    } catch (error) {
+      console.error('Error updating page description:', error);
+      setError(t('pages.updateError'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleDeleteClick = () => {
     if (selectedPage) {
       setShowDeleteModal(true);
@@ -99,6 +137,8 @@ export const PageSelector: React.FC = () => {
       setIsDeleting(false);
     }
   };
+
+  const canEditPages = user?.role === 'EDITOR' || user?.role === 'ADMIN';
 
   return (
     <>
@@ -128,6 +168,11 @@ export const PageSelector: React.FC = () => {
             ))
           )}
           {pages.length > 0 && user?.role !== 'READER' && <Dropdown.Divider />}
+          {selectedPage && canEditPages && (
+            <Dropdown.Item onClick={handleEditClick} disabled={isLoading}>
+              ✏️ {t('pages.editDescription')}
+            </Dropdown.Item>
+          )}
           {user?.role !== 'READER' && (
             <Dropdown.Item onClick={handleAddPage} disabled={isLoading}>
               ➕ {t('pages.addNewPage')}
@@ -140,6 +185,37 @@ export const PageSelector: React.FC = () => {
           )}
         </Dropdown.Menu>
       </Dropdown>
+
+      {/* Edit Description Modal */}
+      <Modal show={showEditModal} onHide={() => setShowEditModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t('pages.editDescription')}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="mb-3">
+            <label htmlFor="page-description" className="form-label">
+              {t('pages.descriptionFor')} {language.toUpperCase()}
+            </label>
+            <input
+              type="text"
+              className="form-control"
+              id="page-description"
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              placeholder={t('pages.enterDescription')}
+              disabled={isSaving}
+            />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEditModal(false)} disabled={isSaving}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="primary" onClick={handleEditSave} disabled={isSaving}>
+            {isSaving ? t('common.loading') : t('common.save')}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>

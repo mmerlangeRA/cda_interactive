@@ -15,6 +15,14 @@ export interface TextElement extends BaseElement {
   fontFamily: string;
   fill: string;
   width?: number;
+  height?: number;
+  scaleX?: number;
+  scaleY?: number;
+  opacity?: number;
+  align?: string;
+  verticalAlign?: string;
+  boxBorderColor?: string;
+  boxBorderWidth?: number;
 }
 
 export interface ImageElement extends BaseElement {

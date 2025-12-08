@@ -90,13 +90,13 @@ export const SheetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const selectSheet = useCallback((sheet: Sheet | null) => {
     setSelectedSheet(sheet);
     setSelectedPage(null);
-    setIsEditMode(false);
+    //setIsEditMode(false);
     setPageElements([]);
   }, []);
 
   const selectPage = useCallback((page: SheetPage | null) => {
     setSelectedPage(page);
-    setIsEditMode(false);
+    //setIsEditMode(false);
     if (page) {
       loadPageElements(page.id);
     } else {
