@@ -19,3 +19,18 @@ services:
       # or that need to override values from .env_python
     ports:
       - "8000:8000"
+    depends_on:
+      - db
+
+  db:
+    container_name: postgres_db
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - ../postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=cda_interactive_user
+      - POSTGRES_PASSWORD=supersecretpassword
+      - POSTGRES_DB=cda_interactive_db
+    ports:
+      - "5432:5432"
