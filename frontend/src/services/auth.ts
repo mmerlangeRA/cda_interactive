@@ -40,7 +40,7 @@ export const login = async (
       username: username,
       password,
     });
-    console.log(response.data)
+
     // If we have an access token, store it for future API calls
     if (response.data.access) {
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
