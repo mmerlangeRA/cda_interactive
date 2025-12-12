@@ -203,3 +203,9 @@ if RAILWAY_STATIC_URL:
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Proxy header settings for Railway/production deployment
+# Trust X-Forwarded-Host header from proxy to build correct absolute URIs
+USE_X_FORWARDED_HOST = True
+# Trust X-Forwarded-Proto header to detect HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
