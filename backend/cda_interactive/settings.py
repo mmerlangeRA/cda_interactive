@@ -6,13 +6,17 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env.dev
-load_dotenv(BASE_DIR / '../.env.dev')
+# Load environment variables from .env.dev (only if file exists - for local development)
+env_file = BASE_DIR / '../.env.dev'
+if env_file.exists():
+    load_dotenv(env_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is not set!")
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 RAILWAY_STATIC_URL = os.getenv('RAILWAY_STATIC_URL')
