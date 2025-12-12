@@ -9,7 +9,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env.dev (only if file exists - for local development)
 env_file = BASE_DIR / '../.env.dev'
 if env_file.exists():
+    print("loading .env.dev")
     load_dotenv(env_file)
+else:
+    print("no local .env.dev, moving on")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -132,18 +135,18 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images from frontend build)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+# STATIC_ROOT: where whitenoise serves static files from (already contains frontend build from Docker)
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# STATICFILES_DIRS: source directories to collect from (empty since we copy directly to STATIC_ROOT in Docker)
+STATICFILES_DIRS = []
 
 
-# Media files (user uploaded content)
+# Media files (user uploaded content - separate from static files!)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
