@@ -12,7 +12,7 @@ if env_file.exists():
     print("loading .env.dev")
     load_dotenv(env_file)
 else:
-    print("no local .env.dev, moving on")
+    print("no local .env.dev, moving on...")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
