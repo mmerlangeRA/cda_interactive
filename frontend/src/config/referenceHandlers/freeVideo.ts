@@ -250,14 +250,14 @@ export class FreeVideoElementHandler extends ReferenceElementHandler {
             onClick: async () => {
               try {
                 const { extractVideoFrame, blobToFile } = await import('../../utils/videoUtils');
-                const { ImageLibraryAPI } = await import('../../services/library');
+                const { MediaLibraryAPI } = await import('../../services/library');
                 
                 // Extract first frame
                 const frameBlob = await extractVideoFrame(String(element.videoUrl));
                 const frameFile = blobToFile(frameBlob, `video-cover-${Date.now()}.jpg`);
                 
                 // Upload to media library
-                const response = await ImageLibraryAPI.create({
+                const response = await MediaLibraryAPI.create({
                   name: `Cover for video ${element.id}`,
                   description: 'Auto-extracted video cover',
                   file: frameFile,

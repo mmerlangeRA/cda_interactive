@@ -150,6 +150,10 @@ STATICFILES_DIRS = []
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# For Railway deployment: Set the base URL for media files
+# This allows the backend to return correct absolute URLs for media files
+MEDIA_URL_BASE = os.getenv('MEDIA_URL_BASE', '')  # e.g., 'https://web-production-dfff.up.railway.app'
+
 
 # REST Framework settings
 REST_FRAMEWORK = {

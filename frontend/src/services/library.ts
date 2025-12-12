@@ -110,5 +110,4 @@ export const MediaLibraryAPI = {
   stats: () => api.get<MediaLibraryStats>('/library/images/stats/'),
 };
 
-// Backward compatibility alias
-export const ImageLibraryAPI = MediaLibraryAPI;
+

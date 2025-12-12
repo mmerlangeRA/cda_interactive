@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CheckCircle, Pencil, PlayCircleFill, Plus, Search, Trash2 } from 'react-bootstrap-icons';
 import { useLibrary } from '../../contexts/LibraryContext';
-import { ImageLibraryAPI } from '../../services/library';
+import { MediaLibraryAPI } from '../../services/library';
 import { MediaLibraryListItem, MediaType } from '../../types/library';
 
 interface MediaLibraryProps {
@@ -50,7 +50,7 @@ export const MediaLibrary: React.FC<MediaLibraryProps> = ({
     }
 
     try {
-      await ImageLibraryAPI.delete(mediaId);
+      await MediaLibraryAPI.delete(mediaId);
       await refreshMedia();
     } catch (error) {
       console.error('Failed to delete media:', error);
@@ -300,7 +300,7 @@ const EditModal: React.FC<{
 
     setIsUpdating(true);
     try {
-      await ImageLibraryAPI.update(media.id, {
+      await MediaLibraryAPI.update(media.id, {
         name,
         description,
         tag_ids: selectedTags,
@@ -453,7 +453,7 @@ const UploadModal: React.FC<{
 
     setIsUploading(true);
     try {
-      await ImageLibraryAPI.create({
+      await MediaLibraryAPI.create({
         name,
         description,
         file: file,

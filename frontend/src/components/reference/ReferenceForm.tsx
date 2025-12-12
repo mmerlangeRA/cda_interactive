@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AVAILABLE_LANGUAGES, Language, REFERENCE_TYPES, getReferenceModel } from '../../config/references';
-import { ImageLibraryAPI } from '../../services/library';
+import { MediaLibraryAPI } from '../../services/library';
 import { ImageLibrary, ImageLibraryListItem } from '../../types/library';
 import { ReferenceFormData, ReferenceValue } from '../../types/reference';
 import { FieldInput } from './FieldInput';
@@ -111,7 +111,7 @@ export const ReferenceForm: React.FC<ReferenceFormProps> = ({
 
       if (imageIds.size > 0) {
         try {
-          const response = await ImageLibraryAPI.list({});
+          const response = await MediaLibraryAPI.list({});
           const images = response.data;
           const imageMap = new Map(images.map((img) => [img.id, img]));
           

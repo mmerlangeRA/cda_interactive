@@ -5,6 +5,7 @@ import { CanvasElement as HandlerCanvasElement } from '../../config/referenceHan
 import { getReferenceModel } from '../../config/references';
 import { useCanvas } from '../../contexts/CanvasContext';
 import { CanvasElement } from '../../types/canvas';
+import { toRelativeUrl } from '../../utils/urlUtils';
 import { MediaLibrary } from '../library/MediaLibrary';
 
 export const ElementInspector: React.FC = () => {
@@ -57,6 +58,9 @@ export const ElementInspector: React.FC = () => {
   
   const handleImageSelect = (_mediaId: number, mediaUrl: string) => {
     if (selectedElement) {
+      // Convert absolute URL to relative URL for portability across environments
+      const relativeUrl = toRelativeUrl(mediaUrl);
+      
       // Check if it's a video based on file extension or if element has videoUrl property
       const isVideo = mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) || ('videoUrl' in selectedElement);
       
@@ -66,7 +70,7 @@ export const ElementInspector: React.FC = () => {
         const height = 180;
         
         updateElement(selectedElement.id, { 
-          videoUrl: mediaUrl,
+          videoUrl: relativeUrl,
           width,
           height
         } as Partial<CanvasElement>);
@@ -89,7 +93,7 @@ export const ElementInspector: React.FC = () => {
           }
 
           updateElement(selectedElement.id, { 
-            imageUrl: mediaUrl,
+            imageUrl: relativeUrl,
             width,
             height
           } as Partial<CanvasElement>);
@@ -316,7 +320,7 @@ export const ElementInspector: React.FC = () => {
               // Only accept images for cover
               if (!mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i)) {
                 updateElement(selectedElement.id, { 
-                  coverImage: mediaUrl
+                  coverImage: toRelativeUrl(mediaUrl)
                 } as Partial<CanvasElement>);
                 setShowCoverImageLibrary(false);
               } else {
