@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DJANGO_DEBUG=True
-ENV DJANGO_SECRET_KEY=temp-secret-key-for-build
+# NOTE: DEBUG, SECRET_KEY, ALLOWED_HOSTS, and DATABASE settings 
+# should be provided by Railway environment variables at runtime
 
 # Set work directory
 WORKDIR /app
@@ -50,19 +50,15 @@ WORKDIR /app
 # Copy rest of the project
 COPY . .
 
-# Set up static files
-RUN mkdir -p backend/users/static/frontend/assets && \
+# Set up static files - copy frontend build to backend/static
+RUN mkdir -p backend/static && \
     echo "Copying frontend build files..." && \
-    cp -rv frontend/dist/assets/* backend/users/static/frontend/assets/ && \
+    cp -rv frontend/dist/* backend/static/ && \
     echo "Verifying copied files:" && \
-    ls -la backend/users/static/frontend/assets/
+    ls -la backend/static/
 
-# Collect static files
-RUN cd backend && \
-    DJANGO_SETTINGS_MODULE=cda_interactive.settings python manage.py collectstatic --noinput --verbosity 2 && \
-
-    # Add mime types to /etc/mime.types
-    RUN echo "application/javascript    js mjs" >> /etc/mime.types && \
+# Add mime types to /etc/mime.types
+RUN echo "application/javascript    js mjs" >> /etc/mime.types && \
     echo "text/css                 css" >> /etc/mime.types
 
 # Expose port
@@ -72,4 +68,4 @@ EXPOSE 80
 ENV PYTHONPATH=/app/backend
 
 # Run migrations and start application
-CMD ["sh", "-c", "cd backend && python manage.py migrate && printenv && gunicorn --bind 0.0.0.0:80 --workers 3 video_networks.wsgi:application"]
+CMD ["sh", "-c", "cd backend && python manage.py migrate && gunicorn --bind 0.0.0.0:80 --workers 3 cda_interactive.wsgi:application"]
