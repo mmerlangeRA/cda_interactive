@@ -7,55 +7,142 @@
  */
 export async function extractVideoFrame(
   videoUrl: string,
-  timestamp: number = 0.1,
-  quality: number = 0.8
+  timestamp = 0.1,
+  quality = 0.8
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    video.crossOrigin = 'anonymous';
-    video.src = videoUrl;
-    video.currentTime = timestamp;
+    const video = document.createElement("video");
 
-    video.addEventListener('seeked', () => {
+    // iOS/Safari friendliness
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+
+    // If the URL is cross-origin, the server MUST send CORS headers.
+    // Otherwise drawing to canvas will taint it and toBlob can fail.
+    video.crossOrigin = "anonymous";
+
+    let settled = false;
+
+    const cleanup = () => {
+      video.pause();
+      video.removeAttribute("src");
+      video.load(); // helps release memory in some browsers
+      video.removeEventListener("loadedmetadata", onLoadedMetadata);
+      video.removeEventListener("seeked", onSeeked);
+      video.removeEventListener("error", onError);
+    };
+
+    const fail = (err: unknown) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(err instanceof Error ? err : new Error(String(err)));
+    };
+
+    const succeed = (blob: Blob) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(blob);
+    };
+
+    const onError = () => {
+      // video.error is more reliable than event message
+      const code = video.error?.code;
+      fail(new Error(`Video loading/decoding error${code ? ` (code ${code})` : ""}`));
+    };
+
+    const grabFrame = () => {
       try {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Failed to get canvas context'));
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (!w || !h) {
+          fail(new Error("Video dimensions not available (videoWidth/videoHeight are 0)."));
           return;
         }
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          fail(new Error("Failed to get canvas context"));
+          return;
+        }
+
+        ctx.drawImage(video, 0, 0, w, h);
 
         canvas.toBlob(
           (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('Failed to create blob from canvas'));
+            if (!blob) {
+              fail(
+                new Error(
+                  "Failed to create blob from canvas. If the video is cross-origin, ensure the server sends CORS headers (or use same-origin / a proxy)."
+                )
+              );
+              return;
             }
+            succeed(blob);
           },
-          'image/jpeg',
+          "image/jpeg",
           quality
         );
-      } catch (error) {
-        reject(error);
-      } finally {
-        video.src = ''; // Clean up
+      } catch (e) {
+        fail(e);
       }
-    });
+    };
 
-    video.addEventListener('error', (e) => {
-      reject(new Error(`Video loading error: ${e.message || 'Unknown error'}`));
-    });
+    const onSeeked = () => {
+      // Some browsers fire seeked before the frame is actually ready to paint.
+      // A double rAF usually stabilizes it.
+      requestAnimationFrame(() => requestAnimationFrame(grabFrame));
+    };
 
+    const onLoadedMetadata = async () => {
+      try {
+        // clamp timestamp into [0, duration]
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        const t = Math.min(Math.max(timestamp, 0), duration || timestamp);
+
+        // If duration is Infinity (live stream) or still not seekable, wait a tick.
+        // Also avoid setting currentTime while readyState is too low.
+        if (video.readyState < 1) {
+          await new Promise((r) => setTimeout(r, 0));
+        }
+
+        video.addEventListener("seeked", onSeeked, { once: true });
+
+        // Safari sometimes needs a play/pause nudge to decode the first frame.
+        try {
+          const p = video.play();
+          if (p && typeof (p as Promise<void>).then === "function") {
+            await p.catch(() => {});
+          }
+          video.pause();
+        } catch {
+          // ignore autoplay restrictions
+        }
+
+        video.currentTime = t;
+
+        // Fallback: if 'seeked' never fires, try grabbing after a short delay.
+        setTimeout(() => {
+          if (!settled) grabFrame();
+        }, 1500);
+      } catch (e) {
+        fail(e);
+      }
+    };
+
+    video.addEventListener("loadedmetadata", onLoadedMetadata, { once: true });
+    video.addEventListener("error", onError);
+
+    video.src = videoUrl;
     video.load();
   });
 }
-
 /**
  * Convert a Blob to a File object
  * @param blob - The blob to convert

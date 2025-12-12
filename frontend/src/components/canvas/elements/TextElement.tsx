@@ -1,8 +1,8 @@
 import Konva from 'konva';
 import React, { useEffect, useRef, useState } from 'react';
 import { Group, Rect, Text, Transformer } from 'react-konva';
-import { useCanvas } from '../../contexts/CanvasContext';
-import { TextElement as TextElementType } from '../../types/canvas';
+import { useCanvas } from '../../../contexts/CanvasContext';
+import { TextElement as TextElementType } from '../../../types/canvas';
 
 interface TextElementProps {
   element: TextElementType;

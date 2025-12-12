@@ -1,8 +1,8 @@
 import Konva from 'konva';
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Transformer } from 'react-konva';
-import { useCanvas } from '../../contexts/CanvasContext';
-import { ImageElement as ImageElementType } from '../../types/canvas';
+import { useCanvas } from '../../../contexts/CanvasContext';
+import { ImageElement as ImageElementType } from '../../../types/canvas';
 
 interface ImageElementProps {
   element: ImageElementType;

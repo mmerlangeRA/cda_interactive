@@ -153,17 +153,22 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:8001",
-    "http://192.168.1.23:8001"
+    "http://localhost:8000",
+    "http://192.168.1.23:8000"
 ]
 
+# For debugging: Allow all origins to access media files
+# WARNING: Remove this in production!
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = False  # Keep False for security, but media-debug endpoint has its own CORS headers
+    
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-    "http://localhost:8001",
-    "http://192.168.1.23:8001"
+    "http://localhost:8000",
+    "http://192.168.1.23:8000"
 ]
 
 CSRF_COOKIE_SAMESITE = 'Lax'

@@ -71,7 +71,7 @@ export const refreshAccessToken = async () => {
     }
 
     // Call the refresh token endpoint
-    const response = await axios.post("/api/auth/refresh/", {
+    const response = await axios.post("/auth/refresh/", {
       refresh: refreshToken
     }, {
       baseURL: api.defaults.baseURL,

@@ -296,9 +296,9 @@ export const CanvasProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
         
         // Get Konva JSON for the current language
-        const konvaJson = ielement.konva_jsons?.[loadLanguage] || ielement.konva_jsons?.['en'];
+        const konvaJson = ielement.konva_jsons?.[loadLanguage] || ielement.konva_jsons?.['fr'];
         if (!konvaJson) {
-          console.warn(`No Konva JSON found for element ${ielement.business_id} in language ${loadLanguage}`);
+          console.warn(`No Konva JSON found for element ${ielement.business_id} in selected language ${loadLanguage}`);
           continue;
         }
         

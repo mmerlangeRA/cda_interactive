@@ -1,8 +1,8 @@
 import Konva from 'konva';
 import React, { useEffect, useRef, useState } from 'react';
 import { Group, Image, Rect, Text, Transformer } from 'react-konva';
-import { CanvasElement, ReferenceElementHandler } from '../../config/referenceHandlers';
-import { useCanvas } from '../../contexts/CanvasContext';
+import { CanvasElement, ReferenceElementHandler } from '../../../config/referenceHandlers';
+import { useCanvas } from '../../../contexts/CanvasContext';
 
 interface VideoElementProps {
   element: CanvasElement;

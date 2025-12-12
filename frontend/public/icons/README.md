@@ -23,14 +23,6 @@ You can use any of these methods:
 - Save as `icon-512.png`
 - Resize to 192x192px and save as `icon-192.png`
 
-### Option 3: Use Existing Logo
-
-If you have the Logiroad logo in `frontend/src/assets/Logo_Logiroad.webp`:
-
-- Convert it to PNG format
-- Resize to 512x512 and 192x192
-- Place the files here
-
 ## Temporary Placeholder
 
 Until you add your icons, the PWA will still work but won't have custom icons when installed on mobile devices.

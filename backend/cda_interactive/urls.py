@@ -6,6 +6,7 @@ from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from users.views import index
+from .views import serve_media_debug
 
 # Swagger/OpenAPI schema configuration
 schema_view = get_schema_view(
@@ -40,6 +41,11 @@ urlpatterns = [
 
 # Serve media files in development (must be before catch-all route)
 if settings.DEBUG:
+    # Add debug media serving endpoint (no authentication required for debugging)
+    urlpatterns += [
+        re_path(r'^media-debug/(?P<path>.*)$', serve_media_debug, name='media-debug'),
+    ]
+    # Standard media serving (requires authentication based on REST_FRAMEWORK settings)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Catch-all route: serve index.html for all other routes (for React Router)

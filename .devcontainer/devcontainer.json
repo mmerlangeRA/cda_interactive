@@ -38,13 +38,13 @@
     }
   },
 
-  "forwardPorts": [8080, 8001, 5432, 5173],
+  "forwardPorts": [8080, 8000, 5432, 5173],
 
   "postCreateCommand": "pip install -r backend/requirements.txt && cd frontend && npm install && grep -E 'SENTRY_DSN_REACT|MY_IP' /workspace/.env_python | sed 's/SENTRY_DSN_REACT/VITE_SENTRY_DSN_REACT/' | sed 's/MY_IP/VITE_MY_IP/' > /workspace/frontend/.env",
 
   // "postStartCommand": {
   //   "frontend-build": "cd /workspace/frontend && npm run build:dev",
-  //   "django-server": "cd /workspace/backend && python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+  //   "django-server": "cd /workspace/backend && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
   // },
 
   "remoteUser": "vscode"

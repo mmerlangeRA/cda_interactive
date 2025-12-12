@@ -7,11 +7,11 @@ import { ImageElement as ImageElementType, TextElement as TextElementType } from
 import { ArrowElement } from './elements/ArrowElement';
 import { CircleElement } from './elements/CircleElement';
 import { GabaritElement } from './elements/GabaritElement';
+import { ImageElement } from './elements/ImageElement';
 import { RectangleElement } from './elements/RectangleElement';
 import { ScrewElement } from './elements/ScrewElement';
-import { ImageElement } from './ImageElement';
-import { TextElement } from './TextElement';
-import { VideoElement } from './VideoElement';
+import { TextElement } from './elements/TextElement';
+import { VideoElement } from './elements/VideoElement';
 import { VideoPlayerModal } from './VideoPlayerModal';
 
 interface CanvasEditorProps {

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    container_name: djangoreact
+    container_name: cdainteractive
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
@@ -18,7 +18,7 @@ services:
       # Additional environment variables that are not in .env_python
       # or that need to override values from .env_python
     ports:
-      - "8001:8001"
+      - "8000:8000"
     depends_on:
       - db
 
@@ -27,13 +27,10 @@ services:
     image: postgres:15
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ../postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=cda_interactive_user
       - POSTGRES_PASSWORD=supersecretpassword
       - POSTGRES_DB=cda_interactive_db
     ports:
       - "5432:5432"
-
-volumes:
-  postgres-data:

@@ -13,6 +13,7 @@ export class ArrowElementHandler extends ReferenceElementHandler {
     const strokeWidth = reference.fields.find(f => f.name === 'strokeWidth')?.value as number || 2;
     const pointerLength = reference.fields.find(f => f.name === 'pointerLength')?.value as number || 10;
     const pointerWidth = reference.fields.find(f => f.name === 'pointerWidth')?.value as number || 10;
+    const lineStyle = reference.fields.find(f => f.name === 'lineStyle')?.value as string || 'solid';
     
     const defaults = this.getDefaultProperties();
     
@@ -33,6 +34,7 @@ export class ArrowElementHandler extends ReferenceElementHandler {
       strokeWidth,
       pointerLength,
       pointerWidth,
+      lineStyle,
     };
   }
   
@@ -60,6 +62,7 @@ export class ArrowElementHandler extends ReferenceElementHandler {
       strokeWidth: 2,
       pointerLength: 10,
       pointerWidth: 10,
+      lineStyle: 'solid',
     };
   }
   
@@ -80,6 +83,7 @@ export class ArrowElementHandler extends ReferenceElementHandler {
       strokeWidth: element.strokeWidth || 2,
       pointerLength: element.pointerLength || 10,
       pointerWidth: element.pointerWidth || 10,
+      lineStyle: element.lineStyle || 'solid',
     };
   }
   
@@ -90,6 +94,7 @@ export class ArrowElementHandler extends ReferenceElementHandler {
       strokeWidth: (description.strokeWidth as number) || 2,
       pointerLength: (description.pointerLength as number) || 10,
       pointerWidth: (description.pointerWidth as number) || 10,
+      lineStyle: (description.lineStyle as string) || 'solid',
     };
   }
   
@@ -101,6 +106,20 @@ export class ArrowElementHandler extends ReferenceElementHandler {
     updateElement: (id: string, attrs: Partial<CanvasElement>) => void
   ): React.ReactNode {
     return React.createElement(React.Fragment, null,
+      React.createElement(Form.Group as any, { className: "mb-3" },
+        React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
+          "Line Style"
+        ),
+        React.createElement(Form.Select as any, {
+          value: String(element.lineStyle || 'solid'),
+          onChange: (e: any) => updateElement(element.id, { lineStyle: e.target.value }),
+          size: "sm"
+        },
+          React.createElement('option', { value: 'solid' }, 'Solid'),
+          React.createElement('option', { value: 'dotted' }, 'Dotted'),
+          React.createElement('option', { value: 'dashed' }, 'Dashed')
+        )
+      ),
       React.createElement(Form.Group as any, { className: "mb-3" },
         React.createElement(Form.Label as any, { className: "fw-bold", style: { fontSize: '0.9rem' } }, 
           "Stroke Color"

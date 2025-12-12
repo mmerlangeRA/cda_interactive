@@ -18,6 +18,21 @@ export const ArrowElement: React.FC<ArrowElementProps> = ({ element, isSelected 
   const { updateElement, selectElement } = useCanvas();
 
   const points = (element.points as number[]) || [0, 0, 100, 0];
+  
+  // Convert lineStyle to Konva dash pattern
+  const getDashPattern = (lineStyle: string | undefined): number[] | undefined => {
+    switch (lineStyle) {
+      case 'dotted':
+        return [10, 5];
+      case 'dashed':
+        return [15, 10];
+      case 'solid':
+      default:
+        return undefined;
+    }
+  };
+  
+  const dash = getDashPattern(element.lineStyle as string);
 
   useEffect(() => {
     if (isSelected && transformerRef.current && groupRef.current) {
@@ -98,6 +113,7 @@ export const ArrowElement: React.FC<ArrowElementProps> = ({ element, isSelected 
           pointerLength={element.pointerLength as number || 10}
           pointerWidth={element.pointerWidth as number || 10}
           opacity={element.opacity}
+          dash={dash}
         />
         
         {/* Start anchor point */}

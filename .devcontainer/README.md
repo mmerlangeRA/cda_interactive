@@ -33,12 +33,12 @@ From the terminal inside the container:
 ```bash
 cd backend
 python manage.py migrate
-python manage.py runserver 0.0.0.0:8001
+python manage.py runserver 0.0.0.0:8000
 ```
 
-- **Swagger UI**: [](http://localhost:8001/swagger/)<http://localhost:8001/swagger/>
+- **Swagger UI**: [](http://localhost:8000/swagger/)<http://localhost:8000/swagger/>
 
-- **ReDoc**: [](http://localhost:8001/redoc/)<http://localhost:8001/redoc/>
+- **ReDoc**: [](http://localhost:8000/redoc/)<http://localhost:8000/redoc/>
 
 superadmin
 
