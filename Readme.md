@@ -245,14 +245,9 @@ Le projet inclut :
 
 ### 🟡 Améliorations prévues
 
-- [ ] Système de backup automatique
 - [ ] Export PDF des fiches
 - [ ] Versionning des fiches
 - [ ] Templates de fiches prédéfinis
-- [ ] Recherche full-text avancée
-- [ ] Mode collaboratif en temps réel
-- [ ] Progressive Web App (PWA) complète
-- [ ] Intégration stockage cloud (S3)
 
 ---
 
