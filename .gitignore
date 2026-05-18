@@ -1,0 +1,6 @@
+# Project-level ignores
+postgres-data/
+.DS_Store
+.env.dev
+images/*
+frontend/.env
