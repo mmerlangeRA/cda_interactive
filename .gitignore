@@ -4,3 +4,4 @@ postgres-data/
 .env.dev
 images/*
 frontend/.env
+.vscode/*
